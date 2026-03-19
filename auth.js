@@ -70,7 +70,7 @@ if (registerForm) {
       email: email,
       password: password,
       bio: "",
-      profilePicture: "https://via.placeholder.com/100",
+      profilePicture: "https://i.pravatar.cc/120?img=3",
       followers: [],
       following: [],
     };
@@ -126,3 +126,5 @@ if (loginForm) {
     }, 1000);
   });
 }
+
+//profile page 
