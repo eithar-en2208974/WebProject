@@ -13,6 +13,15 @@ function saveUsers(users){
 function getPosts(){
     return JSON.parse(localStorage.getItem("posts")) || [];
 }
+   function updateFollowCounts() {
+  const currentUser = getCurrentUser();
+
+  document.getElementById("followersCount").textContent =
+    currentUser.followers ? currentUser.followers.length : 0;
+
+  document.getElementById("followingCount").textContent =
+    currentUser.following ? currentUser.following.length : 0;
+}
 
 function renderProfile(){
     const currentUser = getCurrentUser();
@@ -22,13 +31,14 @@ function renderProfile(){
         return;
     }
 
-    document.getElementById("ProfileUsername").textContent = currentUser.username ;
-    document.getElementById("ProfileEmail").textContent = currentUser.email ;
-    document.getElementById("ProfileBio").textContent = currentUser.bio && currentUser.bio.trim() !== "" ? currentUser.bio : "No bio yet." ;
-    document.getElementById("ProfileImage").src = currentUser.profilePicture || "https://i.pravatar.cc/120?img=3" ;
+    document.getElementById("ProfileUsername").textContent = currentUser.username;
+    document.getElementById("ProfileEmail").textContent = currentUser.email;
+    document.getElementById("ProfileBio").textContent =
+      currentUser.bio && currentUser.bio.trim() !== "" ? currentUser.bio : "No bio yet.";
+    document.getElementById("ProfileImage").src =
+      currentUser.profilePicture || "https://i.pravatar.cc/120?img=3";
 
-    document.getElementById("followersCount").textContent = currentUser.followers ? currentUser.followers.length : 0;
-    document.getElementById("followingCount").textContent = currentUser.following ? currentUser.following.length : 0;
+    updateFollowCounts();
 }
 
 function openEditForm(){
@@ -83,6 +93,7 @@ function saveProfileChenges(e){
     const updatedCurrentUser = updatedUsers.find( (user) => user.id === currentUser.id);
     localStorage.setItem("currentUser", JSON.stringify(updatedCurrentUser));
     saveUsers(updatedUsers);
+    updateFollowCounts();
 
     message.style.color = "green";
     message.textContent = "Profile updated successfully.";
@@ -139,3 +150,6 @@ if (editProfileForm) {
 
 renderProfile();
 renderUserPosts();
+
+
+

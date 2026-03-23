@@ -323,3 +323,53 @@ body {
 .delete-btn:hover {
   opacity: 0.9;
 }
+
+
+
+.post {
+  background: #fff;
+  padding: 15px;
+  margin: 15px 0;
+  border-radius: 10px;
+  border: 1px solid #ddd;
+}
+
+.post-header {
+  display: flex;
+  justify-content: space-between;
+}
+
+.post-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.like-btn {
+  background: #ff4d6d;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.follow-btn {
+  background: #0077ff;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.comment-input {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.comment-input input {
+  flex: 1;
+  padding: 5px;
+}
