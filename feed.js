@@ -83,19 +83,30 @@ function renderPosts() {
     postsContainer.innerHTML = "<p>No posts yet.</p>";
     return;
   }
-  posts
-    .slice()
-    .reverse()
-    .forEach((post) => {
-      const postCard = document.createElement("div");
-      postCard.classList.add("post-card");
+posts
+  .slice()
+  .reverse()
+  .forEach((post) => {
+    const postCard = document.createElement("div");
+    postCard.classList.add("post-card");
 
-      postCard.innerHTML = `
+    const users = getUsers();
+    const postUser = users.find((user) => user.username === post.username);
+
+    const profileImage =
+      postUser && postUser.profilePicture
+        ? postUser.profilePicture
+        : "https://i.pravatar.cc/50?img=3";
+
+    postCard.innerHTML = `
       <div class="post-header">
-        <div>
-          <div class="post-user">${post.username}</div>
-          <div class="post-time">${formatDate(post.timestamp)}</div>
-        </div> 
+        <div class="post-user-info">
+          <img src="${profileImage}" alt="${post.username}" class="post-profile-img" />
+          <div class="post-user-text">
+            <div class="post-user">${post.username}</div>
+            <div class="post-time">${new Date(post.timestamp).toLocaleString("en-GB")}</div>
+          </div>
+        </div>
         ${
           currentUser && currentUser.username === post.username
             ? `<button class="delete-btn" data-id="${post.id}">Delete</button>`
@@ -104,28 +115,31 @@ function renderPosts() {
       </div>
 
       <p class="post-text">${post.content}</p>
-       
 
       <div class="post-actions">
         <button class="like-btn" data-id="${post.id}">❤️ Like</button>
         <span class="like-count">${post.likes || 0}</span>
+          <button class="toggle-comments-btn" data-id="${post.id}">
+          💬 Comment</button>
 
-${
-  currentUser && currentUser.username !== post.username
-    ? `<button class="follow-btn" data-username="${post.username}">
-         ${
-           (currentUser.following || []).includes(
-             (getUsers().find((u) => u.username === post.username) || {}).id,
-           )
-             ? "Unfollow"
-             : "Follow"
-         }
-       </button>`
-    : ""
-}
+        ${
+          currentUser && currentUser.username !== post.username
+            ? `<button class="follow-btn" data-username="${post.username}">
+                 ${
+                   (currentUser.following || []).includes(
+                     (getUsers().find((u) => u.username === post.username) || {}).id
+                   )
+                     ? "Unfollow"
+                     : "Follow"
+                 }
+               </button>`
+            : ""
+        }
       </div>
 
-      <div class="comments-section">
+
+
+      <div class="comments-section hidden-comments" id="comments-${post.id}">
         <div class="comments-list">
           ${(post.comments || []).map((c) => `<p>${c}</p>`).join("")}
         </div>
@@ -137,8 +151,8 @@ ${
       </div>
     `;
 
-      postsContainer.appendChild(postCard);
-    });
+    postsContainer.appendChild(postCard);
+  });
 
   document.querySelectorAll(".delete-btn").forEach((button) => {
     button.addEventListener("click", function () {
@@ -159,6 +173,15 @@ ${
       renderPosts();
     });
   });
+
+  document.querySelectorAll(".toggle-comments-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+    const postId = this.dataset.id;
+    const commentsSection = document.getElementById(`comments-${postId}`);
+    commentsSection.classList.toggle("hidden-comments");
+   });
+  });
+
 
   document.querySelectorAll(".comment-btn").forEach((btn) => {
     btn.addEventListener("click", function () {

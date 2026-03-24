@@ -150,7 +150,7 @@ function renderUserPosts() {
         <article class="post-card">
           <h3>${post.username}</h3>
           <p>${post.content}</p>
-          <small>${new Date(post.timestamp).toLocaleString()}</small>
+          <small>${new Date(post.timestamp).toLocaleString("en-GB")}</small>
         </article>
       `;
     });
