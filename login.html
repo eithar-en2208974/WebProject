@@ -3,31 +3,50 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Login</title>
+    <title>Login | Cirqle</title>
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <main class="auth-container">
+    <main class="auth-page">
+      <div class="auth-bg-circle auth-bg-circle-1"></div>
+      <div class="auth-bg-circle auth-bg-circle-2"></div>
+
       <section class="auth-card">
-        <h1>Login</h1>
+        <div class="auth-brand">
+          <div class="logo-icon small-logo">
+            <span></span>
+          </div>
+          <h1 class="brand-title">Cirqle</h1>
+        </div>
+
+        <h2 class="auth-title">Welcome Back</h2>
+        <p class="auth-subtitle">Sign in to continue sharing and connecting.</p>
+
         <form id="loginForm">
           <label for="loginEmail">Email</label>
-          <input type="email" id="loginEmail" placeholder="Enter email" />
+          <input
+            type="email"
+            id="loginEmail"
+            placeholder="Enter your email"
+            required
+          />
 
           <label for="loginPassword">Password</label>
           <input
             type="password"
             id="loginPassword"
-            placeholder="Enter password"
+            placeholder="Enter your password"
+            required
+            minlength="6"
           />
 
           <p id="loginMessage" class="message"></p>
 
-          <button type="submit">Login</button>
+          <button type="submit" class="auth-btn">Login</button>
         </form>
 
         <p class="switch-page">
-          Don’t have an account? <a href="register.html">Register</a>
+          Don’t have an account? <a href="register.html">Create one</a>
         </p>
       </section>
     </main>

@@ -30,7 +30,7 @@ function followUser(targetId) {
 
   if (!currentUser.following.includes(targetId)) {
     currentUser.following.push(targetId);
-    const targetUser = users.find(u => u.id === targetId);
+    const targetUser = users.find((u) => u.id === targetId);
     targetUser.followers.push(currentUser.id);
     saveUsers(users);
     setCurrentUser(currentUser);
@@ -41,9 +41,11 @@ function unfollowUser(targetId) {
   const users = getUsers();
   const currentUser = getCurrentUser();
 
-  currentUser.following = currentUser.following.filter(id => id !== targetId);
-  const targetUser = users.find(u => u.id === targetId);
-  targetUser.followers = targetUser.followers.filter(id => id !== currentUser.id);
+  currentUser.following = currentUser.following.filter((id) => id !== targetId);
+  const targetUser = users.find((u) => u.id === targetId);
+  targetUser.followers = targetUser.followers.filter(
+    (id) => id !== currentUser.id,
+  );
 
   saveUsers(users);
   setCurrentUser(currentUser);
@@ -62,13 +64,13 @@ function toggleFollow(userId) {
 function toggleLike(postId) {
   const posts = getPosts();
   const currentUser = getCurrentUser();
-  const post = posts.find(p => p.id === postId);
+  const post = posts.find((p) => p.id === postId);
 
   post.likedBy = post.likedBy || [];
   post.likes = post.likes || 0;
 
   if (post.likedBy.includes(currentUser.id)) {
-    post.likedBy = post.likedBy.filter(id => id !== currentUser.id);
+    post.likedBy = post.likedBy.filter((id) => id !== currentUser.id);
     post.likes--;
   } else {
     post.likedBy.push(currentUser.id);
@@ -87,7 +89,7 @@ function addComment(postId) {
 
   const posts = getPosts();
   const currentUser = getCurrentUser();
-  const post = posts.find(p => p.id === postId);
+  const post = posts.find((p) => p.id === postId);
 
   post.comments = post.comments || [];
   post.comments.push({
@@ -125,12 +127,13 @@ function createPost(content) {
 // --- RENDER POSTS FOR HOME OR PROFILE ---
 function renderPosts(postsArray) {
   return postsArray
-    .map(post => {
+    .map((post) => {
       const currentUser = getCurrentUser();
       const isLiked = post.likedBy.includes(currentUser.id);
       const likeText = isLiked ? "Unlike" : "Like";
-      const followText =
-        currentUser.following.includes(post.userId) ? "Unfollow" : "Follow";
+      const followText = currentUser.following.includes(post.userId)
+        ? "Unfollow"
+        : "Follow";
 
       return `
       <div class="post">
@@ -143,7 +146,7 @@ function renderPosts(postsArray) {
             : ""
         }
         <div class="comments" id="comments-${post.id}">
-          ${post.comments.map(c => `<p><strong>${c.username}:</strong> ${c.text}</p>`).join("")}
+          ${post.comments.map((c) => `<p><strong>${c.username}:</strong> ${c.text}</p>`).join("")}
         </div>
         <input id="comment-${post.id}" placeholder="Add a comment...">
         <button onclick="addComment(${post.id})">Comment</button>
@@ -163,7 +166,7 @@ function renderCurrentPagePosts() {
   // Check if profile page
   if (window.location.pathname.includes("profile.html")) {
     // Show only current user's posts
-    const userPosts = posts.filter(post => post.userId === currentUser.id);
+    const userPosts = posts.filter((post) => post.userId === currentUser.id);
     postsContainer.innerHTML = renderPosts(userPosts);
   } else {
     // Home feed shows all posts

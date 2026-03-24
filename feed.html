@@ -1,36 +1,36 @@
 <!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>News Feed</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>News Feed</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
+  <body>
+    <div id="navbarContainer"></div>
 
-<body>
-  <div id="navbarContainer"></div>
+    <main class="feed-content">
+      <h1>News Feed</h1>
 
-  <main class="feed-content">
-    <h1>News Feed</h1>
+      <section class="create-post-box">
+        <h2>Create Post</h2>
+        <textarea
+          id="postContent"
+          placeholder="What's on your mind?"
+        ></textarea>
+        <button id="postBtn">Post</button>
+      </section>
 
-    <section class="create-post-box">
-      <h2>Create Post</h2>
-      <textarea id="postContent" placeholder="What's on your mind?"></textarea>
-      <button id="postBtn">Post</button>
-    </section>
+      <section class="posts-box">
+        <h2>All Posts</h2>
+        <div id="postsContainer"></div>
+      </section>
+    </main>
 
-    <section class="posts-box">
-      <h2>All Posts</h2>
-      <div id="postsContainer"></div>
-    </section>
-  </main>
+    <script src="nav.js"></script>
 
-  <script src="nav.js"></script>
-
-  <!-- Embed your JS properly inside a script tag -->
-  <script src="feed.js"></script>
-  
-</body>
-
+    <!-- Embed your JS properly inside a script tag -->
+    <script src="feed.js"></script>
+  </body>
 </html>

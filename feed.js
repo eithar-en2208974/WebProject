@@ -3,31 +3,31 @@ const postBtn = document.getElementById("postBtn");
 const postsContainer = document.getElementById("postsContainer");
 
 function getCurrentUser() {
-    return JSON.parse(localStorage.getItem("currentUser"));
+  return JSON.parse(localStorage.getItem("currentUser"));
 }
 
 function getPosts() {
-    return JSON.parse(localStorage.getItem("posts")) || [];
+  return JSON.parse(localStorage.getItem("posts")) || [];
 }
 
 function savePosts(posts) {
-    localStorage.setItem("posts", JSON.stringify(posts));
+  localStorage.setItem("posts", JSON.stringify(posts));
 }
 
 function formatDate(dateString) {
-    const date = new Date(dateString);
-    return date.toLocaleString();
+  const date = new Date(dateString);
+  return date.toLocaleString();
 }
 function getUsers() {
-    return JSON.parse(localStorage.getItem("users")) || [];
+  return JSON.parse(localStorage.getItem("users")) || [];
 }
 
 function saveUsers(users) {
-    localStorage.setItem("users", JSON.stringify(users));
+  localStorage.setItem("users", JSON.stringify(users));
 }
 
 function setCurrentUser(user) {
-    localStorage.setItem("currentUser", JSON.stringify(user));
+  localStorage.setItem("currentUser", JSON.stringify(user));
 }
 function toggleFollow(targetUsername) {
   const users = getUsers();
@@ -36,11 +36,11 @@ function toggleFollow(targetUsername) {
   if (!currentUser || currentUser.username === targetUsername) return;
 
   const currentUserIndex = users.findIndex(
-    (user) => user.id === currentUser.id
+    (user) => user.id === currentUser.id,
   );
 
   const targetUserIndex = users.findIndex(
-    (user) => user.username === targetUsername
+    (user) => user.username === targetUsername,
   );
 
   if (currentUserIndex === -1 || targetUserIndex === -1) return;
@@ -55,10 +55,10 @@ function toggleFollow(targetUsername) {
 
   if (isFollowing) {
     currentUserData.following = currentUserData.following.filter(
-      (id) => id !== targetUserData.id
+      (id) => id !== targetUserData.id,
     );
     targetUserData.followers = targetUserData.followers.filter(
-      (id) => id !== currentUserData.id
+      (id) => id !== currentUserData.id,
     );
   } else {
     currentUserData.following.push(targetUserData.id);
@@ -68,26 +68,29 @@ function toggleFollow(targetUsername) {
   users[currentUserIndex] = currentUserData;
   users[targetUserIndex] = targetUserData;
 
-saveUsers(users);
-setCurrentUser(currentUserData);
-renderPosts();
+  saveUsers(users);
+  setCurrentUser(currentUserData);
+  renderPosts();
 }
 
 function renderPosts() {
-    const posts = getPosts();
-    const currentUser = getCurrentUser();
+  const posts = getPosts();
+  const currentUser = getCurrentUser();
 
-    postsContainer.innerHTML = "";
+  postsContainer.innerHTML = "";
 
-    if (posts.length === 0) {
-        postsContainer.innerHTML = "<p>No posts yet.</p>";
-        return;
-    }
-posts.slice().reverse().forEach((post) => {
-    const postCard = document.createElement("div");
-    postCard.classList.add("post-card");
+  if (posts.length === 0) {
+    postsContainer.innerHTML = "<p>No posts yet.</p>";
+    return;
+  }
+  posts
+    .slice()
+    .reverse()
+    .forEach((post) => {
+      const postCard = document.createElement("div");
+      postCard.classList.add("post-card");
 
-    postCard.innerHTML = `
+      postCard.innerHTML = `
       <div class="post-header">
         <div>
           <div class="post-user">${post.username}</div>
@@ -112,7 +115,7 @@ ${
     ? `<button class="follow-btn" data-username="${post.username}">
          ${
            (currentUser.following || []).includes(
-             (getUsers().find((u) => u.username === post.username) || {}).id
+             (getUsers().find((u) => u.username === post.username) || {}).id,
            )
              ? "Unfollow"
              : "Follow"
@@ -124,7 +127,7 @@ ${
 
       <div class="comments-section">
         <div class="comments-list">
-          ${(post.comments || []).map(c => `<p>${c}</p>`).join("")}
+          ${(post.comments || []).map((c) => `<p>${c}</p>`).join("")}
         </div>
 
         <div class="comment-input">
@@ -134,94 +137,93 @@ ${
       </div>
     `;
 
-    postsContainer.appendChild(postCard);
-});
+      postsContainer.appendChild(postCard);
+    });
 
-document.querySelectorAll(".delete-btn").forEach((button) => {
-  button.addEventListener("click", function () {
-    deletePost(Number(this.dataset.id));
+  document.querySelectorAll(".delete-btn").forEach((button) => {
+    button.addEventListener("click", function () {
+      deletePost(Number(this.dataset.id));
+    });
   });
-});
 
-document.querySelectorAll(".like-btn").forEach((btn) => {
-  btn.addEventListener("click", function () {
-    const postId = Number(this.dataset.id);
-    const posts = getPosts();
-    const post = posts.find(p => p.id === postId);
+  document.querySelectorAll(".like-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const postId = Number(this.dataset.id);
+      const posts = getPosts();
+      const post = posts.find((p) => p.id === postId);
 
-    post.likes = post.likes || 0;
-    post.likes++;
+      post.likes = post.likes || 0;
+      post.likes++;
 
-    savePosts(posts);
-    renderPosts();
+      savePosts(posts);
+      renderPosts();
+    });
   });
-});
 
-document.querySelectorAll(".comment-btn").forEach((btn) => {
-  btn.addEventListener("click", function () {
-    const postId = Number(this.dataset.id);
-    const input = this.previousElementSibling;
+  document.querySelectorAll(".comment-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const postId = Number(this.dataset.id);
+      const input = this.previousElementSibling;
 
-    const text = input.value.trim();
-    if (!text) return;
+      const text = input.value.trim();
+      if (!text) return;
 
-    const posts = getPosts();
-    const post = posts.find(p => p.id === postId);
+      const posts = getPosts();
+      const post = posts.find((p) => p.id === postId);
 
-    post.comments = post.comments || [];
-    post.comments.push(text);
+      post.comments = post.comments || [];
+      post.comments.push(text);
 
-    savePosts(posts);
+      savePosts(posts);
 
-    input.value = "";
-    renderPosts();
+      input.value = "";
+      renderPosts();
+    });
   });
-});
-document.querySelectorAll(".follow-btn").forEach((btn) => {
-  btn.addEventListener("click", function () {
-    const targetUsername = this.dataset.username;
-    toggleFollow(targetUsername);
+  document.querySelectorAll(".follow-btn").forEach((btn) => {
+    btn.addEventListener("click", function () {
+      const targetUsername = this.dataset.username;
+      toggleFollow(targetUsername);
+    });
   });
-});
 }
 function createPost() {
-    const content = postContent.value.trim();
-    const currentUser = getCurrentUser();
+  const content = postContent.value.trim();
+  const currentUser = getCurrentUser();
 
-    if (!content) {
-        alert("Post cannot be empty.");
-        return;
-    }
-    if (!currentUser) {
-        alert("No user is logged in.");
-        return;
-    }
+  if (!content) {
+    alert("Post cannot be empty.");
+    return;
+  }
+  if (!currentUser) {
+    alert("No user is logged in.");
+    return;
+  }
 
-    const posts = getPosts(); 
+  const posts = getPosts();
 
-const newPost = {
-  id: Date.now(),
-  username: currentUser.username,
-  userId: currentUser.id,
-  content: content,
-  timestamp: new Date().toISOString(),
-  likes: 0,
-  likedBy: [],
-  comments: []
-};
+  const newPost = {
+    id: Date.now(),
+    username: currentUser.username,
+    userId: currentUser.id,
+    content: content,
+    timestamp: new Date().toISOString(),
+    likes: 0,
+    likedBy: [],
+    comments: [],
+  };
 
-    posts.push(newPost);
-    savePosts(posts);
-    postContent.value = ""; 
-    renderPosts(); 
+  posts.push(newPost);
+  savePosts(posts);
+  postContent.value = "";
+  renderPosts();
 }
 function deletePost(postId) {
-    let posts = getPosts();
-    posts = posts.filter((post) => post.id !== postId);
-    savePosts(posts);
-    renderPosts();
+  let posts = getPosts();
+  posts = posts.filter((post) => post.id !== postId);
+  savePosts(posts);
+  renderPosts();
 }
 
 postBtn.addEventListener("click", createPost);
 renderPosts();
-

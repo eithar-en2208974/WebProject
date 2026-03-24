@@ -70,7 +70,8 @@ if (registerForm) {
       email: email,
       password: password,
       bio: "",
-      profilePicture: "https://i.pravatar.cc/120?img=3",
+      profilePicture:
+        "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg",
       followers: [],
       following: [],
     };
@@ -127,4 +128,4 @@ if (loginForm) {
   });
 }
 
-//profile page 
+//profile page

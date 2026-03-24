@@ -1,67 +1,81 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Profile</title>
-  <link rel="stylesheet" href="style.css" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Profile</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
     <div id="navbarContainer"></div>
     <main class="profile-page">
-        <section class="profile-card">
-            <div class="profile-header">
-                <img id="profileImage" src="" alt="Profile picture" class="Profile-image">
+      <section class="profile-card">
+        <div class="profile-header">
+          <img
+            id="profileImage"
+            src=""
+            alt="Profile picture"
+            class="profile-image"
+          />
 
-                <div class="profile-info">
-                    <h1 id="ProfileUsername">Username</h1>
-                    <p id="ProfileEmail">Email</p>
-                    <p id="ProfileBio">No bio yet.</p>
-                    <button id="followBtnUI" class="follow-btn">Follow</button>
+          <div class="profile-info">
+            <h1 id="ProfileUsername">Username</h1>
+            <p id="ProfileEmail">Email</p>
+            <p id="ProfileBio">No bio yet.</p>
+            <button id="followBtnUI" class="follow-btn">Follow</button>
 
-                    <div class="profile-stats">
-                        <span><strong id="followersCount">0</strong>Followers</span>
-                        <span><strong id="followingCount">0</strong>Following</span>
-                    </div>
-
-                    <button id="editProfileBtn" class="Profile-btn">Edit Profile</button>
-                </div>
+            <div class="profile-stats">
+              <span><strong id="followersCount">0</strong>Followers</span>
+              <span><strong id="followingCount">0</strong>Following</span>
             </div>
-        </section>
 
-        <section class="edit-profile-card hidden" id="editProfileSection">
-            <h2>Edit Profile</h2>
-            <form id="editProfileForm">
-                <label for="editusername">Username</label>
-                <input type="text" id="editUsername" placeholder="Enter Username" />
+            <button id="editProfileBtn" class="Profile-btn">
+              Edit Profile
+            </button>
+          </div>
+        </div>
+      </section>
 
-                <label for="editBio">Bio</label>
-                <textarea id="editBio" rows="4" placeholder="Write your bio"></textarea>
+      <section class="edit-profile-card hidden" id="editProfileSection">
+        <h2>Edit Profile</h2>
+        <form id="editProfileForm">
+          <label for="editusername">Username</label>
+          <input type="text" id="editUsername" placeholder="Enter Username" />
 
-                <label for="editProfilePicture">Profile Picture URL</label>
-                <input type="text" id="editProfilePicture" placeholder="Enter image URL">
+          <label for="editBio">Bio</label>
+          <textarea
+            id="editBio"
+            rows="4"
+            placeholder="Write your bio"
+          ></textarea>
 
-                <p id="profileMessage" class="message"></p>
+          <label for="editProfilePicture">Profile Picture URL</label>
+          <input
+            type="text"
+            id="editProfilePicture"
+            placeholder="Enter image URL"
+          />
 
-                <div class="edit-actions">
-                    <button type="submit" class="profile-btn">Save Changes</button>
-                    <button type="button" id="cancelEditBtn" class="cancel-btn">Cancel</button>
-                </div>
+          <p id="profileMessage" class="message"></p>
 
-            </form>
-        </section>
+          <div class="edit-actions">
+            <button type="submit" class="profile-btn">Save Changes</button>
+            <button type="button" id="cancelEditBtn" class="cancel-btn">
+              Cancel
+            </button>
+          </div>
+        </form>
+      </section>
 
-        <section class="user-posts-section">
-            <h2>My Posts</h2>
-            <div id="userPostsContainer" class="user-posts-container">
-                <p>No posts yet.</p>
-            </div>
-        </section>
-
+      <section class="user-posts-section">
+        <h2>My Posts</h2>
+        <div id="userPostsContainer" class="user-posts-container">
+          <p>No posts yet.</p>
+        </div>
+      </section>
     </main>
 
     <script src="profile.js"></script>
     <script src="nav.js"></script>
-    
-</body>
+  </body>
 </html>
