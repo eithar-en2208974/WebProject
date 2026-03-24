@@ -33,7 +33,7 @@
             <h2>Edit Profile</h2>
             <form id="editProfileForm">
                 <label for="editusername">Username</label>
-                <input type="text" id="editusername" placeholder="Enter Username" />
+                <input type="text" id="editUsername" placeholder="Enter Username" />
 
                 <label for="editBio">Bio</label>
                 <textarea id="editBio" rows="4" placeholder="Write your bio"></textarea>
@@ -45,7 +45,7 @@
 
                 <div class="edit-actions">
                     <button type="submit" class="profile-btn">Save Changes</button>
-                    <button type="button" id="CancelEditBtn" class="cancel-btn">Cancel</button>
+                    <button type="button" id="cancelEditBtn" class="cancel-btn">Cancel</button>
                 </div>
 
             </form>
@@ -53,14 +53,15 @@
 
         <section class="user-posts-section">
             <h2>My Posts</h2>
-            <div id="postsContainer" class="user-posts-container">
+            <div id="userPostsContainer" class="user-posts-container">
                 <p>No posts yet.</p>
             </div>
         </section>
 
     </main>
 
-    <script src="nav.js"></script>
     <script src="profile.js"></script>
+    <script src="nav.js"></script>
+    
 </body>
 </html>

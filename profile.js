@@ -55,7 +55,7 @@ function closeEditForm(){
     document.getElementById("profileMessage").textContent = "" ;
 }
 
-function saveProfileChenges(e){
+function saveProfileChanges(e){
     e.preventDefault();
 
     const currentUser = getCurrentUser();
@@ -99,39 +99,48 @@ function saveProfileChenges(e){
     message.textContent = "Profile updated successfully.";
 
     renderProfile();
+    renderUserPosts();
     setTimeout(()=> {
         closeEditForm();
     }, 1000 );
 }
 
 function renderUserPosts(){
+
     const currentUser = getCurrentUser();
     const posts = getPosts();
     const userPostsContainer = document.getElementById("userPostsContainer");
-    if (!currentUser || !userPostsContainer) return;
 
-    const userPosts = posts.filter((post) => post.userId === currentUser.id);
+  if (!userPostsContainer) {
+    return;
+  }
 
-    if (userPosts.length === 0) {
-        userPostsContainer.innerHTML = "<p>No posts yet.</p>";
-        return;
-    }
+  if (!currentUser) {
+    userPostsContainer.innerHTML = "<p>No posts yet.</p>";
+    return;
+  }
 
-    userPostsContainer.innerHTML = userPosts
-        .slice()
-        .reverse()
-        .map(
-        (post) => `
-            <article class="post-card">
-            <h3>${currentUser.username}</h3>
-            <p>${post.content}</p>
-            <small>${post.timestamp || "No date"}</small>
-            </article>
-         `
-        )
-        .join("");
+  const userPosts = posts.filter((post) => post.username === currentUser.username);
+
+  if (userPosts.length === 0) {
+    userPostsContainer.innerHTML = "<p>No posts yet.</p>";
+    return;
+  }
+
+  let html = "";
+
+  userPosts.slice().reverse().forEach((post) => {
+    html += `
+      <article class="post-card">
+        <h3>${post.username}</h3>
+        <p>${post.content}</p>
+        <small>${new Date(post.timestamp).toLocaleString()}</small>
+      </article>
+    `;
+  });
+
+  userPostsContainer.innerHTML = html;
 }
-
 const editProfileBtn = document.getElementById("editProfileBtn");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
 const editProfileForm = document.getElementById("editProfileForm");
@@ -150,6 +159,5 @@ if (editProfileForm) {
 
 renderProfile();
 renderUserPosts();
-
 
 
