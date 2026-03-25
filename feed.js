@@ -120,7 +120,7 @@ posts
         <button class="like-btn" data-id="${post.id}">❤️ Like</button>
         <span class="like-count">${post.likes || 0}</span>
           <button class="toggle-comments-btn" data-id="${post.id}">
-          💬 Comment</button>
+          💬 Comment (${(post.comments || []).length})</button>
 
         ${
           currentUser && currentUser.username !== post.username
