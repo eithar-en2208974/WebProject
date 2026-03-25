@@ -18,6 +18,7 @@ function formatDate(dateString) {
   const date = new Date(dateString);
   return date.toLocaleString();
 }
+
 function getUsers() {
   return JSON.parse(localStorage.getItem("users")) || [];
 }
@@ -29,6 +30,7 @@ function saveUsers(users) {
 function setCurrentUser(user) {
   localStorage.setItem("currentUser", JSON.stringify(user));
 }
+
 function toggleFollow(targetUsername) {
   const users = getUsers();
   const currentUser = getCurrentUser();
@@ -36,11 +38,11 @@ function toggleFollow(targetUsername) {
   if (!currentUser || currentUser.username === targetUsername) return;
 
   const currentUserIndex = users.findIndex(
-    (user) => user.id === currentUser.id,
+    (user) => user.id === currentUser.id
   );
 
   const targetUserIndex = users.findIndex(
-    (user) => user.username === targetUsername,
+    (user) => user.username === targetUsername
   );
 
   if (currentUserIndex === -1 || targetUserIndex === -1) return;
@@ -55,10 +57,10 @@ function toggleFollow(targetUsername) {
 
   if (isFollowing) {
     currentUserData.following = currentUserData.following.filter(
-      (id) => id !== targetUserData.id,
+      (id) => id !== targetUserData.id
     );
     targetUserData.followers = targetUserData.followers.filter(
-      (id) => id !== currentUserData.id,
+      (id) => id !== currentUserData.id
     );
   } else {
     currentUserData.following.push(targetUserData.id);
@@ -83,6 +85,7 @@ function renderPosts() {
     postsContainer.innerHTML = "<p>No posts yet.</p>";
     return;
   }
+
   posts
     .slice()
     .reverse()
@@ -97,6 +100,8 @@ function renderPosts() {
         postUser && postUser.profilePicture
           ? postUser.profilePicture
           : "https://i.pravatar.cc/50?img=3";
+
+      const likeCount = Array.isArray(post.likes) ? post.likes.length : 0;
 
       postCard.innerHTML = `
       <div class="post-header">
@@ -117,19 +122,17 @@ function renderPosts() {
       <p class="post-text">${post.content}</p>
 
       <div class="post-actions">
-        <button class="like-btn" data-id="${post.id}">❤️ Like (${post.likes || 0})</button>
-          <button class="toggle-comments-btn" data-id="${post.id}">
-          💬 Comment (${(post.comments || []).length})</button>
+        <button class="like-btn" data-id="${post.id}">❤️ Like (${likeCount})</button>
+        <button class="toggle-comments-btn" data-id="${post.id}">
+          💬 Comment (${(post.comments || []).length})
+        </button>
 
         ${
           currentUser && currentUser.username !== post.username
             ? `<button class="follow-btn" data-username="${post.username}">
                  ${
                    (currentUser.following || []).includes(
-                     (
-                       getUsers().find((u) => u.username === post.username) ||
-                       {}
-                     ).id,
+                     (getUsers().find((u) => u.username === post.username) || {}).id
                    )
                      ? "Unfollow"
                      : "Follow"
@@ -139,11 +142,16 @@ function renderPosts() {
         }
       </div>
 
-
-
       <div class="comments-section hidden-comments" id="comments-${post.id}">
         <div class="comments-list">
-          ${(post.comments || []).map((c) => `<p>${c}</p>`).join("")}
+          ${(post.comments || [])
+            .map((c) => {
+              if (typeof c === "string") {
+                return `<p>${c}</p>`;
+              }
+              return `<p><strong>${c.username}:</strong> ${c.text}</p>`;
+            })
+            .join("")}
         </div>
 
         <div class="comment-input">
@@ -166,10 +174,22 @@ function renderPosts() {
     btn.addEventListener("click", function () {
       const postId = Number(this.dataset.id);
       const posts = getPosts();
+      const currentUser = getCurrentUser();
       const post = posts.find((p) => p.id === postId);
 
-      post.likes = post.likes || 0;
-      post.likes++;
+      if (!post || !currentUser) return;
+
+      if (!Array.isArray(post.likes)) {
+        post.likes = [];
+      }
+
+      const alreadyLiked = post.likes.includes(currentUser.id);
+
+      if (alreadyLiked) {
+        post.likes = post.likes.filter((id) => id !== currentUser.id);
+      } else {
+        post.likes.push(currentUser.id);
+      }
 
       savePosts(posts);
       renderPosts();
@@ -188,22 +208,33 @@ function renderPosts() {
     btn.addEventListener("click", function () {
       const postId = Number(this.dataset.id);
       const input = this.previousElementSibling;
+      const currentUser = getCurrentUser();
 
       const text = input.value.trim();
-      if (!text) return;
+      if (!text || !currentUser) return;
 
       const posts = getPosts();
       const post = posts.find((p) => p.id === postId);
 
+      if (!post) return;
+
       post.comments = post.comments || [];
-      post.comments.push(text);
+      post.comments.push({
+        username: currentUser.username,
+        text: text,
+      });
 
       savePosts(posts);
-
       input.value = "";
       renderPosts();
+
+      const commentsSection = document.getElementById(`comments-${postId}`);
+      if (commentsSection) {
+        commentsSection.classList.remove("hidden-comments");
+      }
     });
   });
+
   document.querySelectorAll(".follow-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
       const targetUsername = this.dataset.username;
@@ -211,6 +242,7 @@ function renderPosts() {
     });
   });
 }
+
 function createPost() {
   const content = postContent.value.trim();
   const currentUser = getCurrentUser();
@@ -219,6 +251,7 @@ function createPost() {
     alert("Post cannot be empty.");
     return;
   }
+
   if (!currentUser) {
     alert("No user is logged in.");
     return;
@@ -232,8 +265,7 @@ function createPost() {
     userId: currentUser.id,
     content: content,
     timestamp: new Date().toISOString(),
-    likes: 0,
-    likedBy: [],
+    likes: [],
     comments: [],
   };
 
@@ -242,6 +274,7 @@ function createPost() {
   postContent.value = "";
   renderPosts();
 }
+
 function deletePost(postId) {
   let posts = getPosts();
   posts = posts.filter((post) => post.id !== postId);
