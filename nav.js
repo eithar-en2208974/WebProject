@@ -20,17 +20,22 @@ function renderNavbar() {
   const currentUser = getCurrentUser();
 
   navbarContainer.innerHTML = `
-    <nav class="navbar">
-      <div class="nav-left">
-        <a href="feed.html">Home</a>
-        <a href="profile.html">Profile</a>
-      </div>
-      <div class="nav-right">
-        <span>👤 ${currentUser ? currentUser.username : "Guest"}</span>
-        ${currentUser ? '<button id="logoutBtn">Logout</button>' : '<a href="login.html">Login</a>'}
-      </div>
-    </nav>
-  `;
+  <nav class="navbar">
+    <div class="nav-left">
+      <a href="feed.html" class="brand-link">
+        <div class="logo-icon"><span></span></div>
+        <span>CIRQLE</span>
+      </a>
+    </div>
+
+    <div class="nav-right">
+      <a href="feed.html">Home</a>
+      <a href="profile.html">Profile</a>
+      <span class="nav-user">👤 ${currentUser ? currentUser.username : "Guest"}</span>
+      ${currentUser ? '<button id="logoutBtn" class="logout-btn">Logout</button>' : '<a href="login.html">Login</a>'}
+    </div>
+  </nav>
+`;
 
   const logoutBtn = document.getElementById("logoutBtn");
   if (logoutBtn) {

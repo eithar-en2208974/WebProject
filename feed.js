@@ -83,22 +83,22 @@ function renderPosts() {
     postsContainer.innerHTML = "<p>No posts yet.</p>";
     return;
   }
-posts
-  .slice()
-  .reverse()
-  .forEach((post) => {
-    const postCard = document.createElement("div");
-    postCard.classList.add("post-card");
+  posts
+    .slice()
+    .reverse()
+    .forEach((post) => {
+      const postCard = document.createElement("div");
+      postCard.classList.add("post-card");
 
-    const users = getUsers();
-    const postUser = users.find((user) => user.username === post.username);
+      const users = getUsers();
+      const postUser = users.find((user) => user.username === post.username);
 
-    const profileImage =
-      postUser && postUser.profilePicture
-        ? postUser.profilePicture
-        : "https://i.pravatar.cc/50?img=3";
+      const profileImage =
+        postUser && postUser.profilePicture
+          ? postUser.profilePicture
+          : "https://i.pravatar.cc/50?img=3";
 
-    postCard.innerHTML = `
+      postCard.innerHTML = `
       <div class="post-header">
         <div class="post-user-info">
           <img src="${profileImage}" alt="${post.username}" class="post-profile-img" />
@@ -126,7 +126,10 @@ posts
             ? `<button class="follow-btn" data-username="${post.username}">
                  ${
                    (currentUser.following || []).includes(
-                     (getUsers().find((u) => u.username === post.username) || {}).id
+                     (
+                       getUsers().find((u) => u.username === post.username) ||
+                       {}
+                     ).id,
                    )
                      ? "Unfollow"
                      : "Follow"
@@ -150,8 +153,8 @@ posts
       </div>
     `;
 
-    postsContainer.appendChild(postCard);
-  });
+      postsContainer.appendChild(postCard);
+    });
 
   document.querySelectorAll(".delete-btn").forEach((button) => {
     button.addEventListener("click", function () {
@@ -175,12 +178,11 @@ posts
 
   document.querySelectorAll(".toggle-comments-btn").forEach((btn) => {
     btn.addEventListener("click", function () {
-    const postId = this.dataset.id;
-    const commentsSection = document.getElementById(`comments-${postId}`);
-    commentsSection.classList.toggle("hidden-comments");
-   });
+      const postId = this.dataset.id;
+      const commentsSection = document.getElementById(`comments-${postId}`);
+      commentsSection.classList.toggle("hidden-comments");
+    });
   });
-
 
   document.querySelectorAll(".comment-btn").forEach((btn) => {
     btn.addEventListener("click", function () {

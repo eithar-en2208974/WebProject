@@ -66,12 +66,17 @@ function saveProfileChanges(e) {
 
   const currentUser = getCurrentUser();
   const users = getUsers();
+  const posts = getPosts();
+
   const newUsername = document.getElementById("editUsername").value.trim();
   const newBio = document.getElementById("editBio").value.trim();
   const newProfilePicture = document
     .getElementById("editProfilePicture")
     .value.trim();
   const message = document.getElementById("profileMessage");
+
+  const defaultProfilePicture =
+    "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg";
 
   message.style.color = "red";
 
@@ -81,8 +86,11 @@ function saveProfileChanges(e) {
   }
 
   const usernameExists = users.find(
-    (user) => user.username === newUsername && user.id !== currentUser.id,
+    (user) =>
+      user.username.toLowerCase() === newUsername.toLowerCase() &&
+      user.id !== currentUser.id,
   );
+
   if (usernameExists) {
     message.textContent = "This username is already taken.";
     return;
@@ -94,26 +102,36 @@ function saveProfileChanges(e) {
         ...user,
         username: newUsername,
         bio: newBio,
-        profilePicture:
-          newProfilePicture ||
-          "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg",
+        profilePicture: newProfilePicture || defaultProfilePicture,
       };
     }
     return user;
   });
 
+  const updatedPosts = posts.map((post) => {
+    if (post.userId === currentUser.id) {
+      return {
+        ...post,
+        username: newUsername,
+      };
+    }
+    return post;
+  });
+
   const updatedCurrentUser = updatedUsers.find(
     (user) => user.id === currentUser.id,
   );
+
   localStorage.setItem("currentUser", JSON.stringify(updatedCurrentUser));
+  localStorage.setItem("posts", JSON.stringify(updatedPosts));
   saveUsers(updatedUsers);
-  updateFollowCounts();
 
   message.style.color = "green";
   message.textContent = "Profile updated successfully.";
 
   renderProfile();
   renderUserPosts();
+
   setTimeout(() => {
     closeEditForm();
   }, 1000);
