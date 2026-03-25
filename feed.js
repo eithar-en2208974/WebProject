@@ -117,8 +117,7 @@ posts
       <p class="post-text">${post.content}</p>
 
       <div class="post-actions">
-        <button class="like-btn" data-id="${post.id}">❤️ Like</button>
-        <span class="like-count">${post.likes || 0}</span>
+        <button class="like-btn" data-id="${post.id}">❤️ Like (${post.likes || 0})</button>
           <button class="toggle-comments-btn" data-id="${post.id}">
           💬 Comment (${(post.comments || []).length})</button>
 

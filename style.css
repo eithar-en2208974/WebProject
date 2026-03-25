@@ -748,14 +748,17 @@ body {
 }
 
 .like-btn {
-  background: #ff4d6d;
+  background-color: #ff4d4f;
   color: white;
+  padding: 8px 14px;
   border: none;
-  padding: 6px 12px;
-  border-radius: 5px;
+  border-radius: 10px;
   cursor: pointer;
 }
 
+.like-btn:hover {
+  background-color: #e63946;
+}
 .follow-btn {
   background: #0077ff;
   color: white;
