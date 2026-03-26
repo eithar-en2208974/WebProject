@@ -142,9 +142,7 @@ function renderUserPosts() {
   const posts = getPosts();
   const userPostsContainer = document.getElementById("userPostsContainer");
 
-  if (!userPostsContainer) {
-    return;
-  }
+  if (!userPostsContainer) return;
 
   if (!currentUser) {
     userPostsContainer.innerHTML = "<p>No posts yet.</p>";
@@ -166,9 +164,16 @@ function renderUserPosts() {
     .forEach((post) => {
       html += `
         <article class="post-card">
-          <h3>${post.username}</h3>
-          <p>${post.content}</p>
-          <small>${new Date(post.timestamp).toLocaleString("en-GB")}</small>
+          <div class="post-header">
+            <div class="post-user-info">
+              <div class="post-user-text">
+                <div class="post-user">${post.username}</div>
+                <div class="post-time">${new Date(post.timestamp).toLocaleString("en-GB")}</div>
+              </div>
+            </div>
+          </div>
+
+          <p class="post-text">${post.content}</p>
         </article>
       `;
     });

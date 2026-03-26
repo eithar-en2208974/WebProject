@@ -43,5 +43,7 @@ function renderNavbar() {
   }
 }
 
-protectPage();
-renderNavbar();
+if (document.getElementById("navbarContainer")) {
+  protectPage();
+  renderNavbar();
+}

@@ -38,11 +38,11 @@ function toggleFollow(targetUsername) {
   if (!currentUser || currentUser.username === targetUsername) return;
 
   const currentUserIndex = users.findIndex(
-    (user) => user.id === currentUser.id
+    (user) => user.id === currentUser.id,
   );
 
   const targetUserIndex = users.findIndex(
-    (user) => user.username === targetUsername
+    (user) => user.username === targetUsername,
   );
 
   if (currentUserIndex === -1 || targetUserIndex === -1) return;
@@ -57,10 +57,10 @@ function toggleFollow(targetUsername) {
 
   if (isFollowing) {
     currentUserData.following = currentUserData.following.filter(
-      (id) => id !== targetUserData.id
+      (id) => id !== targetUserData.id,
     );
     targetUserData.followers = targetUserData.followers.filter(
-      (id) => id !== currentUserData.id
+      (id) => id !== currentUserData.id,
     );
   } else {
     currentUserData.following.push(targetUserData.id);
@@ -99,7 +99,7 @@ function renderPosts() {
       const profileImage =
         postUser && postUser.profilePicture
           ? postUser.profilePicture
-          : "https://i.pravatar.cc/50?img=3";
+          : "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg";
 
       const likeCount = Array.isArray(post.likes) ? post.likes.length : 0;
 
@@ -129,15 +129,18 @@ function renderPosts() {
 
         ${
           currentUser && currentUser.username !== post.username
-            ? `<button class="follow-btn" data-username="${post.username}">
-                 ${
-                   (currentUser.following || []).includes(
-                     (getUsers().find((u) => u.username === post.username) || {}).id
-                   )
-                     ? "Unfollow"
-                     : "Follow"
-                 }
-               </button>`
+            ? (() => {
+                const targetUser = getUsers().find(
+                  (u) => u.username === post.username,
+                );
+                const isFollowing = currentUser.following?.includes(
+                  targetUser?.id,
+                );
+
+                return `<button class="follow-btn" data-username="${post.username}">
+                  ${isFollowing ? "Unfollow" : "Follow"}
+                </button>`;
+              })()
             : ""
         }
       </div>
@@ -145,12 +148,13 @@ function renderPosts() {
       <div class="comments-section hidden-comments" id="comments-${post.id}">
         <div class="comments-list">
           ${(post.comments || [])
-            .map((c) => {
-              if (typeof c === "string") {
-                return `<p>${c}</p>`;
-              }
-              return `<p><strong>${c.username}:</strong> ${c.text}</p>`;
-            })
+            .map(
+              (c) => `
+              <p>
+                <strong>${c.username}</strong>: ${c.text}
+              </p>
+            `,
+            )
             .join("")}
         </div>
 
@@ -220,8 +224,11 @@ function renderPosts() {
 
       post.comments = post.comments || [];
       post.comments.push({
+        id: Date.now(),
+        userId: currentUser.id,
         username: currentUser.username,
         text: text,
+        timestamp: new Date().toISOString(),
       });
 
       savePosts(posts);
@@ -276,8 +283,11 @@ function createPost() {
 }
 
 function deletePost(postId) {
+  const currentUser = getCurrentUser();
   let posts = getPosts();
-  posts = posts.filter((post) => post.id !== postId);
+  posts = posts.filter(
+    (post) => !(post.id === postId && post.userId === currentUser.id),
+  );
   savePosts(posts);
   renderPosts();
 }

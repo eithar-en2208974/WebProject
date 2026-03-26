@@ -950,3 +950,20 @@ body {
     flex-direction: column;
   }
 }
+.comments-list {
+  margin-top: 10px;
+}
+
+.comments-list p {
+  background: #f2f4f5;
+  padding: 8px 12px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: #374151;
+  line-height: 1.5;
+}
+
+.comments-list strong {
+  color: #1f2937;
+}

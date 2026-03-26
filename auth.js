@@ -1,25 +1,26 @@
 function redirectIfLoggedIn() {
   const currentUser = localStorage.getItem("currentUser");
-  if (currentUser && window.location.pathname.includes("login.html")) {
-    window.location.href = "feed.html";
-  }
-  if (currentUser && window.location.pathname.includes("register.html")) {
+
+  if (
+    currentUser &&
+    (window.location.pathname.includes("index.html") ||
+      window.location.pathname.includes("login.html") ||
+      window.location.pathname.includes("register.html"))
+  ) {
     window.location.href = "feed.html";
   }
 }
 
 redirectIfLoggedIn();
-// Get users from localStorage or return empty array
+
 function getUsers() {
   return JSON.parse(localStorage.getItem("users")) || [];
 }
 
-// Save users to localStorage
 function saveUsers(users) {
   localStorage.setItem("users", JSON.stringify(users));
 }
 
-// Register logic
 const registerForm = document.getElementById("registerForm");
 
 if (registerForm) {
@@ -57,8 +58,18 @@ if (registerForm) {
     }
 
     const users = getUsers();
+    const existingUsername = users.find(
+      (user) => user.username.toLowerCase() === username.toLowerCase(),
+    );
 
-    const existingUser = users.find((user) => user.email === email);
+    if (existingUsername) {
+      message.textContent = "This username is already taken.";
+      return;
+    }
+
+    const existingUser = users.find(
+      (user) => user.email.toLowerCase() === email.toLowerCase(),
+    );
     if (existingUser) {
       message.textContent = "This email is already registered.";
       return;
@@ -88,7 +99,6 @@ if (registerForm) {
   });
 }
 
-// Login logic
 const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
@@ -109,7 +119,9 @@ if (loginForm) {
     const users = getUsers();
 
     const foundUser = users.find(
-      (user) => user.email === email && user.password === password,
+      (user) =>
+        user.email.toLowerCase() === email.toLowerCase() &&
+        user.password === password,
     );
 
     if (!foundUser) {
@@ -127,5 +139,3 @@ if (loginForm) {
     }, 1000);
   });
 }
-
-
