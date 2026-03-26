@@ -148,13 +148,35 @@ function renderPosts() {
       <div class="comments-section hidden-comments" id="comments-${post.id}">
         <div class="comments-list">
           ${(post.comments || [])
-            .map(
-              (c) => `
-              <p>
-                <strong>${c.username}</strong>: ${c.text}
-              </p>
-            `,
-            )
+
+            .map((c) => {
+              const users = getUsers();
+              const commentUser = users.find(
+                (u) => u.id === c.userId || u.username === c.username,
+              );
+
+              const commentProfileImage =
+                commentUser && commentUser.profilePicture
+                  ? commentUser.profilePicture
+                  : "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg";
+
+              return `
+                <div class="comment-card">
+                  <div class="comment-header">
+                    <img src="${commentProfileImage}" class="comment-profile-img" />
+                    
+                    <div class="comment-user-text">
+                      <div class="comment-user">${c.username}</div>
+                      <div class="comment-time">
+                        ${new Date(c.timestamp).toLocaleString("en-GB")}
+                      </div>
+                    </div>
+                  </div>
+
+                  <p class="comment-text">${c.text}</p>
+                </div>
+              `;
+            })
             .join("")}
         </div>
 
@@ -227,6 +249,7 @@ function renderPosts() {
         id: Date.now(),
         userId: currentUser.id,
         username: currentUser.username,
+        profilePicture: currentUser.profilePicture,
         text: text,
         timestamp: new Date().toISOString(),
       });
