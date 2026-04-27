@@ -3,9 +3,12 @@
   "version": "1.0.0",
   "description": "",
   "main": "auth.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+"scripts": {
+  "dev": "next dev",
+  "db:push": "npx prisma db push",
+  "db:seed": "node prisma/seed.js",
+  "db:studio": "npx prisma studio"
+},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/eithar-en2208974/WebProject.git"
@@ -13,7 +16,6 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
   "bugs": {
     "url": "https://github.com/eithar-en2208974/WebProject/issues"
   },
@@ -24,6 +26,9 @@
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.8.0",
     "@prisma/client": "^7.8.0",
-    "better-sqlite3": "^12.9.0"
+    "better-sqlite3": "^12.9.0",
+    "next": "^16.2.4",
+    "react": "^19.2.5",
+    "react-dom": "^19.2.5"
   }
 }
