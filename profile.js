@@ -1,31 +1,46 @@
+const profileInfo = {
+  username: document.getElementById("ProfileUsername"),
+  email: document.getElementById("ProfileEmail"),
+  bio: document.getElementById("ProfileBio"),
+  image: document.getElementById("profileImage"),
+  followers: document.getElementById("followersCount"),
+  following: document.getElementById("followingCount"),
+};
+
+const editProfileBtn = document.getElementById("editProfileBtn");
+const cancelEditBtn = document.getElementById("cancelEditBtn");
+const editProfileForm = document.getElementById("editProfileForm");
+const userPostsContainer = document.getElementById("userPostsContainer");
+
+function apiBaseUrl() {
+  return window.location.protocol === "file:" ? "http://localhost:3000" : "";
+}
+
+async function apiRequest(path, options = {}) {
+  const response = await fetch(`${apiBaseUrl()}${path}`, {
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.error || `Request failed with status ${response.status}`);
+  }
+  return data;
+}
+
 function getCurrentUser() {
   return JSON.parse(localStorage.getItem("currentUser"));
 }
 
-function getUsers() {
-  return JSON.parse(localStorage.getItem("users")) || [];
+function setCurrentUser(user) {
+  localStorage.setItem("currentUser", JSON.stringify(user));
 }
 
-function saveUsers(users) {
-  localStorage.setItem("users", JSON.stringify(users));
+function defaultAvatar() {
+  return "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg";
 }
 
-function getPosts() {
-  return JSON.parse(localStorage.getItem("posts")) || [];
-}
-function updateFollowCounts() {
-  const currentUser = getCurrentUser();
-
-  document.getElementById("followersCount").textContent = currentUser.followers
-    ? currentUser.followers.length
-    : 0;
-
-  document.getElementById("followingCount").textContent = currentUser.following
-    ? currentUser.following.length
-    : 0;
-}
-
-function renderProfile() {
+async function loadProfile() {
   const currentUser = getCurrentUser();
 
   if (!currentUser) {
@@ -33,26 +48,31 @@ function renderProfile() {
     return;
   }
 
-  document.getElementById("ProfileUsername").textContent = currentUser.username;
-  document.getElementById("ProfileEmail").textContent = currentUser.email;
-  document.getElementById("ProfileBio").textContent =
-    currentUser.bio && currentUser.bio.trim() !== ""
-      ? currentUser.bio
-      : "No bio yet.";
-  document.getElementById("profileImage").src =
-    currentUser.profilePicture ||
-    "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg";
+  const [{ user }, { posts }] = await Promise.all([
+    apiRequest(`/api/users/${currentUser.id}`),
+    apiRequest(`/api/posts?authorId=${currentUser.id}&sortBy=createdAt&order=desc`),
+  ]);
 
-  updateFollowCounts();
+  setCurrentUser(user);
+  renderProfile(user);
+  renderUserPosts(posts);
+}
+
+function renderProfile(user) {
+  profileInfo.username.textContent = user.username;
+  profileInfo.email.textContent = user.email;
+  profileInfo.bio.textContent = "No bio yet.";
+  profileInfo.image.src = user.avatarUrl || defaultAvatar();
+  profileInfo.followers.textContent = user._count?.followers || 0;
+  profileInfo.following.textContent = user._count?.following || 0;
 }
 
 function openEditForm() {
   const currentUser = getCurrentUser();
 
   document.getElementById("editUsername").value = currentUser.username || "";
-  document.getElementById("editBio").value = currentUser.bio || "";
-  document.getElementById("editProfilePicture").value =
-    currentUser.profilePicture || "";
+  document.getElementById("editBio").value = "";
+  document.getElementById("editProfilePicture").value = currentUser.avatarUrl || "";
   document.getElementById("editProfileSection").classList.remove("hidden");
 }
 
@@ -61,128 +81,68 @@ function closeEditForm() {
   document.getElementById("profileMessage").textContent = "";
 }
 
-function saveProfileChanges(e) {
+async function saveProfileChanges(e) {
   e.preventDefault();
 
   const currentUser = getCurrentUser();
-  const users = getUsers();
-  const posts = getPosts();
-
-  const newUsername = document.getElementById("editUsername").value.trim();
-  const newBio = document.getElementById("editBio").value.trim();
-  const newProfilePicture = document
-    .getElementById("editProfilePicture")
-    .value.trim();
+  const username = document.getElementById("editUsername").value.trim();
+  const avatarUrl = document.getElementById("editProfilePicture").value.trim();
   const message = document.getElementById("profileMessage");
-
-  const defaultProfilePicture =
-    "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg";
 
   message.style.color = "red";
 
-  if (!newUsername) {
+  if (!username) {
     message.textContent = "Username cannot be empty.";
     return;
   }
 
-  const usernameExists = users.find(
-    (user) =>
-      user.username.toLowerCase() === newUsername.toLowerCase() &&
-      user.id !== currentUser.id,
-  );
+  try {
+    const { user } = await apiRequest(`/api/users/${currentUser.id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        username,
+        email: currentUser.email,
+        avatarUrl: avatarUrl || null,
+      }),
+    });
 
-  if (usernameExists) {
-    message.textContent = "This username is already taken.";
-    return;
+    setCurrentUser(user);
+    message.style.color = "green";
+    message.textContent = "Profile updated successfully.";
+    await loadProfile();
+
+    setTimeout(() => {
+      closeEditForm();
+    }, 800);
+  } catch (error) {
+    message.textContent = error.message;
   }
-
-  const updatedUsers = users.map((user) => {
-    if (user.id === currentUser.id) {
-      return {
-        ...user,
-        username: newUsername,
-        bio: newBio,
-        profilePicture: newProfilePicture || defaultProfilePicture,
-      };
-    }
-    return user;
-  });
-
-  const updatedPosts = posts.map((post) => {
-    if (post.userId === currentUser.id) {
-      return {
-        ...post,
-        username: newUsername,
-      };
-    }
-    return post;
-  });
-
-  const updatedCurrentUser = updatedUsers.find(
-    (user) => user.id === currentUser.id,
-  );
-
-  localStorage.setItem("currentUser", JSON.stringify(updatedCurrentUser));
-  localStorage.setItem("posts", JSON.stringify(updatedPosts));
-  saveUsers(updatedUsers);
-
-  message.style.color = "green";
-  message.textContent = "Profile updated successfully.";
-
-  renderProfile();
-  renderUserPosts();
-
-  setTimeout(() => {
-    closeEditForm();
-  }, 1000);
 }
 
-function renderUserPosts() {
-  const currentUser = getCurrentUser();
-  const posts = getPosts();
-  const userPostsContainer = document.getElementById("userPostsContainer");
-
-  if (!userPostsContainer) return;
-
-  if (!currentUser) {
+function renderUserPosts(posts) {
+  if (!posts.length) {
     userPostsContainer.innerHTML = "<p>No posts yet.</p>";
     return;
   }
 
-  const userPosts = posts.filter((post) => post.userId === currentUser.id);
-
-  if (userPosts.length === 0) {
-    userPostsContainer.innerHTML = "<p>No posts yet.</p>";
-    return;
-  }
-
-  let html = "";
-
-  userPosts
-    .slice()
-    .reverse()
-    .forEach((post) => {
-      html += `
+  userPostsContainer.innerHTML = posts
+    .map(
+      (post) => `
         <article class="post-card">
           <div class="post-header">
             <div class="post-user-info">
               <div class="post-user-text">
-                <div class="post-user">${post.username}</div>
-                <div class="post-time">${new Date(post.timestamp).toLocaleString("en-GB")}</div>
+                <div class="post-user">${post.author.username}</div>
+                <div class="post-time">${new Date(post.createdAt).toLocaleString("en-GB")}</div>
               </div>
             </div>
           </div>
-
-          <p class="post-text">${post.content}</p>
+          <p class="post-text">${post.text}</p>
         </article>
-      `;
-    });
-
-  userPostsContainer.innerHTML = html;
+      `,
+    )
+    .join("");
 }
-const editProfileBtn = document.getElementById("editProfileBtn");
-const cancelEditBtn = document.getElementById("cancelEditBtn");
-const editProfileForm = document.getElementById("editProfileForm");
 
 if (editProfileBtn) {
   editProfileBtn.addEventListener("click", openEditForm);
@@ -196,5 +156,6 @@ if (editProfileForm) {
   editProfileForm.addEventListener("submit", saveProfileChanges);
 }
 
-renderProfile();
-renderUserPosts();
+loadProfile().catch((error) => {
+  document.querySelector(".profile-page").innerHTML = `<p>${error.message}</p>`;
+});

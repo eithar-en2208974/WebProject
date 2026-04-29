@@ -2,181 +2,104 @@ const postContent = document.getElementById("postContent");
 const postBtn = document.getElementById("postBtn");
 const postsContainer = document.getElementById("postsContainer");
 
+function apiBaseUrl() {
+  return window.location.protocol === "file:" ? "http://localhost:3000" : "";
+}
+
+async function apiRequest(path, options = {}) {
+  const response = await fetch(`${apiBaseUrl()}${path}`, {
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.error || `Request failed with status ${response.status}`);
+  }
+  return data;
+}
+
 function getCurrentUser() {
   return JSON.parse(localStorage.getItem("currentUser"));
 }
 
-function getPosts() {
-  return JSON.parse(localStorage.getItem("posts")) || [];
-}
-
-function savePosts(posts) {
-  localStorage.setItem("posts", JSON.stringify(posts));
-}
-
 function formatDate(dateString) {
-  const date = new Date(dateString);
-  return date.toLocaleString();
+  return new Date(dateString).toLocaleString("en-GB");
 }
 
-function getUsers() {
-  return JSON.parse(localStorage.getItem("users")) || [];
-}
-
-function saveUsers(users) {
-  localStorage.setItem("users", JSON.stringify(users));
-}
-
-function setCurrentUser(user) {
-  localStorage.setItem("currentUser", JSON.stringify(user));
-}
-
-function toggleFollow(targetUsername) {
-  const users = getUsers();
-  const currentUser = getCurrentUser();
-
-  if (!currentUser || currentUser.username === targetUsername) return;
-
-  const currentUserIndex = users.findIndex(
-    (user) => user.id === currentUser.id,
+function avatarFor(user) {
+  return (
+    user?.avatarUrl ||
+    "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg"
   );
-
-  const targetUserIndex = users.findIndex(
-    (user) => user.username === targetUsername,
-  );
-
-  if (currentUserIndex === -1 || targetUserIndex === -1) return;
-
-  const currentUserData = users[currentUserIndex];
-  const targetUserData = users[targetUserIndex];
-
-  currentUserData.following = currentUserData.following || [];
-  targetUserData.followers = targetUserData.followers || [];
-
-  const isFollowing = currentUserData.following.includes(targetUserData.id);
-
-  if (isFollowing) {
-    currentUserData.following = currentUserData.following.filter(
-      (id) => id !== targetUserData.id,
-    );
-    targetUserData.followers = targetUserData.followers.filter(
-      (id) => id !== currentUserData.id,
-    );
-  } else {
-    currentUserData.following.push(targetUserData.id);
-    targetUserData.followers.push(currentUserData.id);
-  }
-
-  users[currentUserIndex] = currentUserData;
-  users[targetUserIndex] = targetUserData;
-
-  saveUsers(users);
-  setCurrentUser(currentUserData);
-  renderPosts();
 }
 
-function renderPosts() {
-  const posts = getPosts();
+async function loadPosts() {
+  const { posts } = await apiRequest("/api/posts?sortBy=createdAt&order=desc");
+  renderPosts(posts);
+}
+
+function renderPosts(posts) {
   const currentUser = getCurrentUser();
 
   postsContainer.innerHTML = "";
 
-  if (posts.length === 0) {
+  if (!posts.length) {
     postsContainer.innerHTML = "<p>No posts yet.</p>";
     return;
   }
 
-  posts
-    .slice()
-    .reverse()
-    .forEach((post) => {
-      const postCard = document.createElement("div");
-      postCard.classList.add("post-card");
+  posts.forEach((post) => {
+    const postCard = document.createElement("div");
+    postCard.classList.add("post-card");
 
-      const users = getUsers();
-      const postUser = users.find((user) => user.username === post.username);
-
-      const profileImage =
-        postUser && postUser.profilePicture
-          ? postUser.profilePicture
-          : "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg";
-
-      const likeCount = Array.isArray(post.likes) ? post.likes.length : 0;
-
-      postCard.innerHTML = `
+    postCard.innerHTML = `
       <div class="post-header">
         <div class="post-user-info">
-          <img src="${profileImage}" alt="${post.username}" class="post-profile-img" />
+          <img src="${avatarFor(post.author)}" alt="${post.author.username}" class="post-profile-img" />
           <div class="post-user-text">
-            <div class="post-user">${post.username}</div>
-            <div class="post-time">${new Date(post.timestamp).toLocaleString("en-GB")}</div>
+            <div class="post-user">${post.author.username}</div>
+            <div class="post-time">${formatDate(post.createdAt)}</div>
           </div>
         </div>
         ${
-          currentUser && currentUser.username === post.username
+          currentUser && currentUser.id === post.authorId
             ? `<button class="delete-btn" data-id="${post.id}">Delete</button>`
             : ""
         }
       </div>
 
-      <p class="post-text">${post.content}</p>
+      <p class="post-text">${post.text}</p>
 
       <div class="post-actions">
-        <button class="like-btn" data-id="${post.id}">❤️ Like (${likeCount})</button>
+        <button class="like-btn" data-id="${post.id}">Like (${post._count.likes})</button>
         <button class="toggle-comments-btn" data-id="${post.id}">
-          💬 Comment (${(post.comments || []).length})
+          Comment (${post._count.comments})
         </button>
 
         ${
-          currentUser && currentUser.username !== post.username
-            ? (() => {
-                const targetUser = getUsers().find(
-                  (u) => u.username === post.username,
-                );
-                const isFollowing = currentUser.following?.includes(
-                  targetUser?.id,
-                );
-
-                return `<button class="follow-btn" data-username="${post.username}">
-                  ${isFollowing ? "Unfollow" : "Follow"}
-                </button>`;
-              })()
+          currentUser && currentUser.id !== post.authorId
+            ? `<button class="follow-btn" data-user-id="${post.authorId}">Follow</button>`
             : ""
         }
       </div>
 
       <div class="comments-section hidden-comments" id="comments-${post.id}">
         <div class="comments-list">
-          ${(post.comments || [])
-
-            .map((c) => {
-              const users = getUsers();
-              const commentUser = users.find(
-                (u) => u.id === c.userId || u.username === c.username,
-              );
-
-              const commentProfileImage =
-                commentUser && commentUser.profilePicture
-                  ? commentUser.profilePicture
-                  : "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg";
-
-              return `
+          ${post.comments
+            .map(
+              (comment) => `
                 <div class="comment-card">
                   <div class="comment-header">
-                    <img src="${commentProfileImage}" class="comment-profile-img" />
-                    
+                    <img src="${avatarFor(comment.author)}" class="comment-profile-img" alt="${comment.author.username}" />
                     <div class="comment-user-text">
-                      <div class="comment-user">${c.username}</div>
-                      <div class="comment-time">
-                        ${new Date(c.timestamp).toLocaleString("en-GB")}
-                      </div>
+                      <div class="comment-user">${comment.author.username}</div>
+                      <div class="comment-time">${formatDate(comment.createdAt)}</div>
                     </div>
                   </div>
-
-                  <p class="comment-text">${c.text}</p>
+                  <p class="comment-text">${comment.text}</p>
                 </div>
-              `;
-            })
+              `,
+            )
             .join("")}
         </div>
 
@@ -187,133 +110,131 @@ function renderPosts() {
       </div>
     `;
 
-      postsContainer.appendChild(postCard);
-    });
+    postsContainer.appendChild(postCard);
+  });
 
   document.querySelectorAll(".delete-btn").forEach((button) => {
-    button.addEventListener("click", function () {
-      deletePost(Number(this.dataset.id));
-    });
+    button.addEventListener("click", () => deletePost(Number(button.dataset.id)));
   });
 
-  document.querySelectorAll(".like-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const postId = Number(this.dataset.id);
-      const posts = getPosts();
-      const currentUser = getCurrentUser();
-      const post = posts.find((p) => p.id === postId);
-
-      if (!post || !currentUser) return;
-
-      if (!Array.isArray(post.likes)) {
-        post.likes = [];
-      }
-
-      const alreadyLiked = post.likes.includes(currentUser.id);
-
-      if (alreadyLiked) {
-        post.likes = post.likes.filter((id) => id !== currentUser.id);
-      } else {
-        post.likes.push(currentUser.id);
-      }
-
-      savePosts(posts);
-      renderPosts();
-    });
+  document.querySelectorAll(".like-btn").forEach((button) => {
+    button.addEventListener("click", () => likePost(Number(button.dataset.id)));
   });
 
-  document.querySelectorAll(".toggle-comments-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const postId = this.dataset.id;
-      const commentsSection = document.getElementById(`comments-${postId}`);
+  document.querySelectorAll(".toggle-comments-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const commentsSection = document.getElementById(`comments-${button.dataset.id}`);
       commentsSection.classList.toggle("hidden-comments");
     });
   });
 
-  document.querySelectorAll(".comment-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const postId = Number(this.dataset.id);
-      const input = this.previousElementSibling;
-      const currentUser = getCurrentUser();
-
-      const text = input.value.trim();
-      if (!text || !currentUser) return;
-
-      const posts = getPosts();
-      const post = posts.find((p) => p.id === postId);
-
-      if (!post) return;
-
-      post.comments = post.comments || [];
-      post.comments.push({
-        id: Date.now(),
-        userId: currentUser.id,
-        username: currentUser.username,
-        profilePicture: currentUser.profilePicture,
-        text: text,
-        timestamp: new Date().toISOString(),
-      });
-
-      savePosts(posts);
-      input.value = "";
-      renderPosts();
-
-      const commentsSection = document.getElementById(`comments-${postId}`);
-      if (commentsSection) {
-        commentsSection.classList.remove("hidden-comments");
-      }
-    });
+  document.querySelectorAll(".comment-btn").forEach((button) => {
+    button.addEventListener("click", () => addComment(Number(button.dataset.id), button));
   });
 
-  document.querySelectorAll(".follow-btn").forEach((btn) => {
-    btn.addEventListener("click", function () {
-      const targetUsername = this.dataset.username;
-      toggleFollow(targetUsername);
-    });
+  document.querySelectorAll(".follow-btn").forEach((button) => {
+    button.addEventListener("click", () => followUser(Number(button.dataset.userId)));
   });
 }
 
-function createPost() {
-  const content = postContent.value.trim();
+async function createPost() {
+  const text = postContent.value.trim();
   const currentUser = getCurrentUser();
 
-  if (!content) {
+  if (!text) {
     alert("Post cannot be empty.");
     return;
   }
 
   if (!currentUser) {
     alert("No user is logged in.");
+    window.location.href = "login.html";
     return;
   }
 
-  const posts = getPosts();
-
-  const newPost = {
-    id: Date.now(),
-    username: currentUser.username,
-    userId: currentUser.id,
-    content: content,
-    timestamp: new Date().toISOString(),
-    likes: [],
-    comments: [],
-  };
-
-  posts.push(newPost);
-  savePosts(posts);
-  postContent.value = "";
-  renderPosts();
+  try {
+    await apiRequest("/api/posts", {
+      method: "POST",
+      body: JSON.stringify({ authorId: currentUser.id, text }),
+    });
+    postContent.value = "";
+    await loadPosts();
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
-function deletePost(postId) {
+async function deletePost(postId) {
+  try {
+    await apiRequest(`/api/posts/${postId}`, { method: "DELETE" });
+    await loadPosts();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function likePost(postId) {
   const currentUser = getCurrentUser();
-  let posts = getPosts();
-  posts = posts.filter(
-    (post) => !(post.id === postId && post.userId === currentUser.id),
-  );
-  savePosts(posts);
-  renderPosts();
+  if (!currentUser) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  try {
+    await apiRequest(`/api/posts/${postId}/likes`, {
+      method: "POST",
+      body: JSON.stringify({ userId: currentUser.id }),
+    });
+    await loadPosts();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function addComment(postId, button) {
+  const currentUser = getCurrentUser();
+  const input = button.previousElementSibling;
+  const text = input.value.trim();
+
+  if (!currentUser) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  if (!text) return;
+
+  try {
+    await apiRequest(`/api/posts/${postId}/comments`, {
+      method: "POST",
+      body: JSON.stringify({ authorId: currentUser.id, text }),
+    });
+    input.value = "";
+    await loadPosts();
+    document.getElementById(`comments-${postId}`)?.classList.remove("hidden-comments");
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function followUser(followingId) {
+  const currentUser = getCurrentUser();
+  if (!currentUser) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  try {
+    await apiRequest("/api/follows", {
+      method: "POST",
+      body: JSON.stringify({ followerId: currentUser.id, followingId }),
+    });
+    alert("Followed successfully.");
+  } catch (error) {
+    alert(error.message);
+  }
 }
 
 postBtn.addEventListener("click", createPost);
-renderPosts();
+loadPosts().catch((error) => {
+  postsContainer.innerHTML = `<p>${error.message}</p>`;
+});

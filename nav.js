@@ -4,6 +4,7 @@ function protectPage() {
     window.location.href = "login.html";
   }
 }
+
 function getCurrentUser() {
   return JSON.parse(localStorage.getItem("currentUser"));
 }
@@ -31,7 +32,7 @@ function renderNavbar() {
     <div class="nav-right">
       <a href="feed.html">Home</a>
       <a href="profile.html">Profile</a>
-      <span class="nav-user">👤 ${currentUser ? currentUser.username : "Guest"}</span>
+      <span class="nav-user">User: ${currentUser ? currentUser.username : "Guest"}</span>
       ${currentUser ? '<button id="logoutBtn" class="logout-btn">Logout</button>' : '<a href="login.html">Login</a>'}
     </div>
   </nav>

@@ -1,0 +1,13 @@
+
+> cirqle-social-platform@1.0.0 dev
+> next dev
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env
+
+ ✓ Starting...
+ ✓ Ready in 3.1s
+ ✓ Compiled /middleware in 497ms (72 modules)
+ ✓ Compiled /api/posts in 208ms (66 modules)
+ GET /api/posts?limit=1 200 in 288ms

@@ -1,3 +1,19 @@
+function apiBaseUrl() {
+  return window.location.protocol === "file:" ? "http://localhost:3000" : "";
+}
+
+async function apiRequest(path, options = {}) {
+  const response = await fetch(`${apiBaseUrl()}${path}`, {
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options,
+  });
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) {
+    throw new Error(data.error || `Request failed with status ${response.status}`);
+  }
+  return data;
+}
+
 function redirectIfLoggedIn() {
   const currentUser = localStorage.getItem("currentUser");
 
@@ -13,18 +29,10 @@ function redirectIfLoggedIn() {
 
 redirectIfLoggedIn();
 
-function getUsers() {
-  return JSON.parse(localStorage.getItem("users")) || [];
-}
-
-function saveUsers(users) {
-  localStorage.setItem("users", JSON.stringify(users));
-}
-
 const registerForm = document.getElementById("registerForm");
 
 if (registerForm) {
-  registerForm.addEventListener("submit", function (e) {
+  registerForm.addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const username = document.getElementById("username").value.trim();
@@ -57,52 +65,28 @@ if (registerForm) {
       return;
     }
 
-    const users = getUsers();
-    const existingUsername = users.find(
-      (user) => user.username.toLowerCase() === username.toLowerCase(),
-    );
+    try {
+      await apiRequest("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify({ username, email, password }),
+      });
 
-    if (existingUsername) {
-      message.textContent = "This username is already taken.";
-      return;
+      message.style.color = "green";
+      message.textContent = "Registration successful! Redirecting to login...";
+
+      setTimeout(() => {
+        window.location.href = "login.html";
+      }, 1000);
+    } catch (error) {
+      message.textContent = error.message;
     }
-
-    const existingUser = users.find(
-      (user) => user.email.toLowerCase() === email.toLowerCase(),
-    );
-    if (existingUser) {
-      message.textContent = "This email is already registered.";
-      return;
-    }
-
-    const newUser = {
-      id: Date.now(),
-      username: username,
-      email: email,
-      password: password,
-      bio: "",
-      profilePicture:
-        "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg",
-      followers: [],
-      following: [],
-    };
-
-    users.push(newUser);
-    saveUsers(users);
-
-    message.style.color = "green";
-    message.textContent = "Registration successful! Redirecting to login...";
-
-    setTimeout(() => {
-      window.location.href = "login.html";
-    }, 1500);
   });
 }
 
 const loginForm = document.getElementById("loginForm");
 
 if (loginForm) {
-  loginForm.addEventListener("submit", function (e) {
+  loginForm.addEventListener("submit", async function (e) {
     e.preventDefault();
 
     const email = document.getElementById("loginEmail").value.trim();
@@ -116,26 +100,22 @@ if (loginForm) {
       return;
     }
 
-    const users = getUsers();
+    try {
+      const { user } = await apiRequest("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ email, password }),
+      });
 
-    const foundUser = users.find(
-      (user) =>
-        user.email.toLowerCase() === email.toLowerCase() &&
-        user.password === password,
-    );
+      localStorage.setItem("currentUser", JSON.stringify(user));
 
-    if (!foundUser) {
-      message.textContent = "Invalid email or password.";
-      return;
+      message.style.color = "green";
+      message.textContent = "Login successful! Redirecting...";
+
+      setTimeout(() => {
+        window.location.href = "feed.html";
+      }, 700);
+    } catch (error) {
+      message.textContent = error.message;
     }
-
-    localStorage.setItem("currentUser", JSON.stringify(foundUser));
-
-    message.style.color = "green";
-    message.textContent = "Login successful! Redirecting...";
-
-    setTimeout(() => {
-      window.location.href = "feed.html";
-    }, 1000);
   });
 }
