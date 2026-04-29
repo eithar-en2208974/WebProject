@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 10, "column": 0}, "map": {"version":3,"sources":["file:///Users/danaal/Desktop/WebProject/app/page.js"],"sourcesContent":["export default function Home() {\n  return (\n    <div style={{ padding: \"20px\" }}>\n      <h1>Welcome to Cirqle</h1>\n      <p>Database is connected successfully</p>\n    </div>\n  );\n}"],"names":["Home","style","padding"],"mappings":";;;;;;AAAe,SAASA;IACtB,qBACE,8OAAC;QAAIC,OAAO;YAAEC,SAAS;QAAO;;0BAC5B,8OAAC;0BAAG;;;;;;0BACJ,8OAAC;0BAAE;;;;;;;;;;;;AAGT"}}]
-}

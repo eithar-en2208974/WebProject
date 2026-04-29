@@ -19,11 +19,11 @@ async function main() {
   ]);
 
   const posts = await Promise.all([
-    prisma.post.create({ data: { authorId: users[0].id, text: "Starting the semester with good vibes." } }),
-    prisma.post.create({ data: { authorId: users[1].id, text: "Working on the Vibe social media app." } }),
-    prisma.post.create({ data: { authorId: users[2].id, text: "Database queries make statistics much cleaner." } }),
+    prisma.post.create({ data: { authorId: users[0].id, text: "Starting the semester with Cirqle." } }),
+    prisma.post.create({ data: { authorId: users[1].id, text: "Working on the Cirqle social media app." } }),
+    prisma.post.create({ data: { authorId: users[2].id, text: "Database queries keep the feed data organized." } }),
     prisma.post.create({ data: { authorId: users[0].id, text: "React pages are coming together." } }),
-    prisma.post.create({ data: { authorId: users[3].id, text: "Today I followed new classmates on Vibe." } }),
+    prisma.post.create({ data: { authorId: users[3].id, text: "Today I followed new classmates on Cirqle." } }),
     prisma.post.create({ data: { authorId: users[1].id, text: "SQLite and Prisma are simple for project demos." } })
   ]);
 
@@ -32,7 +32,7 @@ async function main() {
       { postId: posts[0].id, authorId: users[1].id, text: "Good luck!" },
       { postId: posts[0].id, authorId: users[2].id, text: "Nice update." },
       { postId: posts[1].id, authorId: users[0].id, text: "The feed is working." },
-      { postId: posts[2].id, authorId: users[3].id, text: "Stats page next." },
+      { postId: posts[2].id, authorId: users[3].id, text: "Profile page next." },
       { postId: posts[4].id, authorId: users[2].id, text: "Follow feature is useful." }
     ]
   });
@@ -66,7 +66,7 @@ async function main() {
       { senderId: users[0].id, receiverId: users[1].id, body: "Can you test the login page?" },
       { senderId: users[1].id, receiverId: users[0].id, body: "Yes, I will test it today." },
       { senderId: users[2].id, receiverId: users[0].id, body: "The profile page needs counts." },
-      { senderId: users[3].id, receiverId: users[1].id, body: "The statistics examples look good." }
+      { senderId: users[3].id, receiverId: users[1].id, body: "The database examples look good." }
     ]
   });
 

@@ -1,4 +1,4 @@
-# Vibe Database Queries for Report
+# Cirqle Database Queries for Report
 
 These are the main Prisma Client queries used by the repository and API layer. Filtering, sorting, counting, and limiting are expressed in the Prisma query so they run in the database instead of filtering full tables in JavaScript.
 
@@ -126,82 +126,5 @@ prisma.follow.upsert({
   create: { followerId, followingId },
   update: {},
   select: { id: true, followerId: true, followingId: true }
-});
-```
-
-## Statistics Queries
-
-Total users:
-
-```js
-prisma.user.count();
-```
-
-Total posts:
-
-```js
-prisma.post.count();
-```
-
-Average followers per user:
-
-```js
-const [userCount, followCount] = await Promise.all([
-  prisma.user.count(),
-  prisma.follow.count()
-]);
-const averageFollowersPerUser = userCount ? followCount / userCount : 0;
-```
-
-Average posts per user:
-
-```js
-const [userCount, postCount] = await Promise.all([
-  prisma.user.count(),
-  prisma.post.count()
-]);
-const averagePostsPerUser = userCount ? postCount / userCount : 0;
-```
-
-User with the most posts:
-
-```js
-prisma.user.findMany({
-  select: { id: true, username: true, _count: { select: { posts: true } } },
-  orderBy: { posts: { _count: "desc" } },
-  take: 1
-});
-```
-
-Most active user in the last 3 months:
-
-```js
-prisma.user.findMany({
-  where: { posts: { some: { createdAt: { gte: threeMonthsAgo } } } },
-  select: { id: true, username: true, _count: { select: { posts: true, comments: true, likes: true } } },
-  orderBy: { posts: { _count: "desc" } },
-  take: 1
-});
-```
-
-Most liked post:
-
-```js
-prisma.post.findFirst({
-  orderBy: { likes: { _count: "desc" } },
-  select: {
-    id: true,
-    text: true,
-    author: { select: { username: true } },
-    _count: { select: { likes: true } }
-  }
-});
-```
-
-Unread notification count:
-
-```js
-prisma.notification.count({
-  where: { isRead: false }
 });
 ```
