@@ -1,217 +1,91 @@
-require("dotenv/config");
-
 const { PrismaClient } = require("@prisma/client");
-const { PrismaBetterSqlite3 } = require("@prisma/adapter-better-sqlite3");
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL,
-});
-
-const prisma = new PrismaClient({ adapter });
+const prisma = new PrismaClient();
 
 async function main() {
-  // Clear old data first
+  await prisma.notification.deleteMany();
+  await prisma.message.deleteMany();
+  await prisma.follow.deleteMany();
   await prisma.like.deleteMany();
   await prisma.comment.deleteMany();
-  await prisma.follow.deleteMany();
   await prisma.post.deleteMany();
   await prisma.user.deleteMany();
 
-  // Create users
-  const maryam = await prisma.user.create({
-    data: {
-      username: "maryam",
-      email: "maryam@test.com",
-      password: "123456",
-      bio: "Architecture and engineering student who enjoys sharing ideas.",
-      profilePicture:
-        "https://i.pinimg.com/736x/e5/9e/51/e59e51dcbba47985a013544769015f25.jpg",
-    },
-  });
+  const users = await Promise.all([
+    prisma.user.create({ data: { username: "Nada", email: "nada@example.com", password: "123456" } }),
+    prisma.user.create({ data: { username: "Maha", email: "maha@example.com", password: "123456" } }),
+    prisma.user.create({ data: { username: "Omar", email: "omar@example.com", password: "123456" } }),
+    prisma.user.create({ data: { username: "Layla", email: "layla@example.com", password: "123456" } })
+  ]);
 
-  const lana = await prisma.user.create({
-    data: {
-      username: "lana",
-      email: "lana@test.com",
-      password: "123456",
-      bio: "Coffee lover and design enthusiast.",
-      profilePicture:
-        "https://i.pinimg.com/736x/7c/16/15/7c1615b7f43bfb4d2b9607df46aa2d14.jpg",
-    },
-  });
+  const posts = await Promise.all([
+    prisma.post.create({ data: { authorId: users[0].id, text: "Starting the semester with good vibes." } }),
+    prisma.post.create({ data: { authorId: users[1].id, text: "Working on the Vibe social media app." } }),
+    prisma.post.create({ data: { authorId: users[2].id, text: "Database queries make statistics much cleaner." } }),
+    prisma.post.create({ data: { authorId: users[0].id, text: "React pages are coming together." } }),
+    prisma.post.create({ data: { authorId: users[3].id, text: "Today I followed new classmates on Vibe." } }),
+    prisma.post.create({ data: { authorId: users[1].id, text: "SQLite and Prisma are simple for project demos." } })
+  ]);
 
-  const noora = await prisma.user.create({
-    data: {
-      username: "noora",
-      email: "noora@test.com",
-      password: "123456",
-      bio: "Sharing daily moments and campus life.",
-      profilePicture:
-        "https://i.pinimg.com/736x/9f/86/6f/9f866f6471df9f1a21973c60cf9c71d5.jpg",
-    },
-  });
-
-  const sara = await prisma.user.create({
-    data: {
-      username: "sara",
-      email: "sara@test.com",
-      password: "123456",
-      bio: "Interested in technology, photography, and social media.",
-      profilePicture:
-        "https://i.pinimg.com/736x/8d/5f/56/8d5f56359d92c8b6a771fb0d4b5ab52f.jpg",
-    },
-  });
-
-  const ahmed = await prisma.user.create({
-    data: {
-      username: "ahmed",
-      email: "ahmed@test.com",
-      password: "123456",
-      bio: "Computer science student and web developer.",
-      profilePicture:
-        "https://i.pinimg.com/736x/13/88/6d/13886d3a7a7527ad2b5cc8e2e3e28f8f.jpg",
-    },
-  });
-
-  const users = [maryam, lana, noora, sara, ahmed];
-
-  // Create posts
-  const post1 = await prisma.post.create({
-    data: {
-      content: "Excited to start using Cirqle and connect with everyone!",
-      authorId: maryam.id,
-    },
-  });
-
-  const post2 = await prisma.post.create({
-    data: {
-      content: "Working on a new web development project today.",
-      authorId: ahmed.id,
-    },
-  });
-
-  const post3 = await prisma.post.create({
-    data: {
-      content: "Morning coffee and planning my tasks for the week.",
-      authorId: lana.id,
-    },
-  });
-
-  const post4 = await prisma.post.create({
-    data: {
-      content: "Campus life has been busy but productive.",
-      authorId: noora.id,
-    },
-  });
-
-  const post5 = await prisma.post.create({
-    data: {
-      content: "Trying to improve my photography skills this weekend.",
-      authorId: sara.id,
-    },
-  });
-
-  const post6 = await prisma.post.create({
-    data: {
-      content: "Database setup is finally working with Prisma and SQLite.",
-      authorId: maryam.id,
-    },
-  });
-
-  // Create comments
   await prisma.comment.createMany({
     data: [
-      {
-        content: "Welcome to Cirqle!",
-        authorId: lana.id,
-        postId: post1.id,
-      },
-      {
-        content: "Good luck with your project.",
-        authorId: maryam.id,
-        postId: post2.id,
-      },
-      {
-        content: "That sounds relaxing.",
-        authorId: sara.id,
-        postId: post3.id,
-      },
-      {
-        content: "Same here, this week is very busy.",
-        authorId: ahmed.id,
-        postId: post4.id,
-      },
-      {
-        content: "Your photos are always nice.",
-        authorId: noora.id,
-        postId: post5.id,
-      },
-      {
-        content: "Great progress!",
-        authorId: ahmed.id,
-        postId: post6.id,
-      },
-    ],
+      { postId: posts[0].id, authorId: users[1].id, text: "Good luck!" },
+      { postId: posts[0].id, authorId: users[2].id, text: "Nice update." },
+      { postId: posts[1].id, authorId: users[0].id, text: "The feed is working." },
+      { postId: posts[2].id, authorId: users[3].id, text: "Stats page next." },
+      { postId: posts[4].id, authorId: users[2].id, text: "Follow feature is useful." }
+    ]
   });
 
-  // Create likes
   await prisma.like.createMany({
     data: [
-      { userId: lana.id, postId: post1.id },
-      { userId: noora.id, postId: post1.id },
-      { userId: sara.id, postId: post1.id },
-
-      { userId: maryam.id, postId: post2.id },
-      { userId: lana.id, postId: post2.id },
-
-      { userId: ahmed.id, postId: post3.id },
-      { userId: sara.id, postId: post3.id },
-
-      { userId: maryam.id, postId: post4.id },
-      { userId: lana.id, postId: post4.id },
-
-      { userId: noora.id, postId: post5.id },
-      { userId: ahmed.id, postId: post5.id },
-
-      { userId: lana.id, postId: post6.id },
-      { userId: sara.id, postId: post6.id },
-      { userId: noora.id, postId: post6.id },
-    ],
+      { postId: posts[0].id, userId: users[1].id },
+      { postId: posts[0].id, userId: users[2].id },
+      { postId: posts[1].id, userId: users[0].id },
+      { postId: posts[1].id, userId: users[3].id },
+      { postId: posts[2].id, userId: users[0].id },
+      { postId: posts[3].id, userId: users[1].id },
+      { postId: posts[4].id, userId: users[0].id },
+      { postId: posts[5].id, userId: users[2].id }
+    ]
   });
 
-  // Create follows
   await prisma.follow.createMany({
     data: [
-      { followerId: maryam.id, followingId: lana.id },
-      { followerId: maryam.id, followingId: ahmed.id },
-
-      { followerId: lana.id, followingId: maryam.id },
-      { followerId: lana.id, followingId: sara.id },
-
-      { followerId: noora.id, followingId: maryam.id },
-      { followerId: noora.id, followingId: lana.id },
-
-      { followerId: sara.id, followingId: noora.id },
-      { followerId: sara.id, followingId: maryam.id },
-
-      { followerId: ahmed.id, followingId: maryam.id },
-      { followerId: ahmed.id, followingId: sara.id },
-    ],
+      { followerId: users[0].id, followingId: users[1].id },
+      { followerId: users[0].id, followingId: users[2].id },
+      { followerId: users[1].id, followingId: users[0].id },
+      { followerId: users[2].id, followingId: users[0].id },
+      { followerId: users[3].id, followingId: users[0].id },
+      { followerId: users[3].id, followingId: users[1].id }
+    ]
   });
 
-  console.log("Database seeded successfully!");
-  console.log(`Users created: ${users.length}`);
-  console.log("Posts created: 6");
-  console.log("Comments created: 6");
-  console.log("Likes created: 14");
-  console.log("Follows created: 10");
+  await prisma.message.createMany({
+    data: [
+      { senderId: users[0].id, receiverId: users[1].id, body: "Can you test the login page?" },
+      { senderId: users[1].id, receiverId: users[0].id, body: "Yes, I will test it today." },
+      { senderId: users[2].id, receiverId: users[0].id, body: "The profile page needs counts." },
+      { senderId: users[3].id, receiverId: users[1].id, body: "The statistics examples look good." }
+    ]
+  });
+
+  await prisma.notification.createMany({
+    data: [
+      { userId: users[0].id, text: "Maha liked your post." },
+      { userId: users[0].id, text: "Omar commented on your post." },
+      { userId: users[1].id, text: "Nada followed you.", isRead: true },
+      { userId: users[2].id, text: "Layla commented on a post." }
+    ]
+  });
 }
 
 main()
-  .catch((error) => {
-    console.error("Seed failed:", error);
-  })
-  .finally(async () => {
+  .then(async () => {
     await prisma.$disconnect();
+  })
+  .catch(async (error) => {
+    console.error(error);
+    await prisma.$disconnect();
+    process.exit(1);
   });
-  
