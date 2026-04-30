@@ -1,21 +1,30 @@
 const postContent = document.getElementById("postContent");
 const postBtn = document.getElementById("postBtn");
 const postsContainer = document.getElementById("postsContainer");
-
-function apiBaseUrl() {
-  return window.location.protocol === "file:" ? "http://localhost:3000" : "";
-}
+const peopleContainer = document.getElementById("peopleContainer");
 
 async function apiRequest(path, options = {}) {
-  const response = await fetch(`${apiBaseUrl()}${path}`, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-    ...options,
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.error || `Request failed with status ${response.status}`);
+  const apiBases = ["", "http://localhost:3005", "http://localhost:3000"];
+  let lastError;
+
+  for (const baseUrl of apiBases) {
+    try {
+      const response = await fetch(`${baseUrl}${path}`, {
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+        ...options,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || `Request failed with status ${response.status}`);
+      }
+      return data;
+    } catch (error) {
+      lastError = error;
+      if (!String(error.message).includes("404") && baseUrl) break;
+    }
   }
-  return data;
+
+  throw lastError;
 }
 
 function getCurrentUser() {
@@ -34,17 +43,66 @@ function avatarFor(user) {
 }
 
 async function loadPosts() {
-  const { posts } = await apiRequest("/api/posts?sortBy=createdAt&order=desc");
-  renderPosts(posts);
+  const currentUser = getCurrentUser();
+  if (!currentUser) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const [{ posts }, { followingIds }] = await Promise.all([
+    apiRequest(`/api/posts?feedUserId=${currentUser.id}&sortBy=createdAt&order=desc`),
+    apiRequest(`/api/follows?followerId=${currentUser.id}`),
+  ]);
+
+  renderPosts(posts, followingIds);
+  await loadPeople(followingIds);
 }
 
-function renderPosts(posts) {
+async function loadPeople(followingIds) {
+  if (!peopleContainer) return;
+
+  const currentUser = getCurrentUser();
+  const { users } = await apiRequest("/api/users?sortBy=username&order=asc");
+  const otherUsers = users.filter((user) => user.id !== currentUser.id);
+
+  peopleContainer.innerHTML = otherUsers
+    .map((user) => {
+      const isFollowing = followingIds.includes(user.id);
+      return `
+        <article class="post-card">
+          <div class="post-header">
+            <div class="post-user-info">
+              <img src="${avatarFor(user)}" alt="${user.username}" class="post-profile-img" />
+              <div class="post-user-text">
+                <a class="post-user" href="profile.html?userId=${user.id}">${user.username}</a>
+                <div class="post-time">${user._count.posts} posts</div>
+              </div>
+            </div>
+            <button class="${isFollowing ? "unfollow-btn" : "follow-btn"}" data-user-id="${user.id}">
+              ${isFollowing ? "Unfollow" : "Follow"}
+            </button>
+          </div>
+        </article>
+      `;
+    })
+    .join("");
+
+  document.querySelectorAll("#peopleContainer .follow-btn").forEach((button) => {
+    button.addEventListener("click", () => followUser(Number(button.dataset.userId)));
+  });
+
+  document.querySelectorAll("#peopleContainer .unfollow-btn").forEach((button) => {
+    button.addEventListener("click", () => unfollowUser(Number(button.dataset.userId)));
+  });
+}
+
+function renderPosts(posts, followingIds = []) {
   const currentUser = getCurrentUser();
 
   postsContainer.innerHTML = "";
 
   if (!posts.length) {
-    postsContainer.innerHTML = "<p>No posts yet.</p>";
+    postsContainer.innerHTML = "<p>No posts yet. Follow someone below to add their posts to your feed.</p>";
     return;
   }
 
@@ -57,7 +115,7 @@ function renderPosts(posts) {
         <div class="post-user-info">
           <img src="${avatarFor(post.author)}" alt="${post.author.username}" class="post-profile-img" />
           <div class="post-user-text">
-            <div class="post-user">${post.author.username}</div>
+            <a class="post-user" href="profile.html?userId=${post.author.id}">${post.author.username}</a>
             <div class="post-time">${formatDate(post.createdAt)}</div>
           </div>
         </div>
@@ -78,7 +136,9 @@ function renderPosts(posts) {
 
         ${
           currentUser && currentUser.id !== post.authorId
-            ? `<button class="follow-btn" data-user-id="${post.authorId}">Follow</button>`
+            ? `<button class="${followingIds.includes(post.authorId) ? "unfollow-btn" : "follow-btn"}" data-user-id="${post.authorId}">
+                ${followingIds.includes(post.authorId) ? "Unfollow" : "Follow"}
+              </button>`
             : ""
         }
       </div>
@@ -134,6 +194,10 @@ function renderPosts(posts) {
 
   document.querySelectorAll(".follow-btn").forEach((button) => {
     button.addEventListener("click", () => followUser(Number(button.dataset.userId)));
+  });
+
+  document.querySelectorAll(".unfollow-btn").forEach((button) => {
+    button.addEventListener("click", () => unfollowUser(Number(button.dataset.userId)));
   });
 }
 
@@ -228,7 +292,25 @@ async function followUser(followingId) {
       method: "POST",
       body: JSON.stringify({ followerId: currentUser.id, followingId }),
     });
-    alert("Followed successfully.");
+    await loadPosts();
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+async function unfollowUser(followingId) {
+  const currentUser = getCurrentUser();
+  if (!currentUser) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  try {
+    await apiRequest("/api/follows", {
+      method: "DELETE",
+      body: JSON.stringify({ followerId: currentUser.id, followingId }),
+    });
+    await loadPosts();
   } catch (error) {
     alert(error.message);
   }

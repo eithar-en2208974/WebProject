@@ -1,17 +1,25 @@
-function apiBaseUrl() {
-  return window.location.protocol === "file:" ? "http://localhost:3000" : "";
-}
-
 async function apiRequest(path, options = {}) {
-  const response = await fetch(`${apiBaseUrl()}${path}`, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-    ...options,
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.error || `Request failed with status ${response.status}`);
+  const apiBases = ["", "http://localhost:3005", "http://localhost:3000"];
+  let lastError;
+
+  for (const baseUrl of apiBases) {
+    try {
+      const response = await fetch(`${baseUrl}${path}`, {
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+        ...options,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || `Request failed with status ${response.status}`);
+      }
+      return data;
+    } catch (error) {
+      lastError = error;
+      if (!String(error.message).includes("404") && baseUrl) break;
+    }
   }
-  return data;
+
+  throw lastError;
 }
 
 function redirectIfLoggedIn() {

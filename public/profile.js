@@ -11,21 +11,30 @@ const editProfileBtn = document.getElementById("editProfileBtn");
 const cancelEditBtn = document.getElementById("cancelEditBtn");
 const editProfileForm = document.getElementById("editProfileForm");
 const userPostsContainer = document.getElementById("userPostsContainer");
-
-function apiBaseUrl() {
-  return window.location.protocol === "file:" ? "http://localhost:3000" : "";
-}
+const profilePostsTitle = document.getElementById("profilePostsTitle");
 
 async function apiRequest(path, options = {}) {
-  const response = await fetch(`${apiBaseUrl()}${path}`, {
-    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-    ...options,
-  });
-  const data = await response.json().catch(() => ({}));
-  if (!response.ok) {
-    throw new Error(data.error || `Request failed with status ${response.status}`);
+  const apiBases = ["", "http://localhost:3005", "http://localhost:3000"];
+  let lastError;
+
+  for (const baseUrl of apiBases) {
+    try {
+      const response = await fetch(`${baseUrl}${path}`, {
+        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+        ...options,
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(data.error || `Request failed with status ${response.status}`);
+      }
+      return data;
+    } catch (error) {
+      lastError = error;
+      if (!String(error.message).includes("404") && baseUrl) break;
+    }
   }
-  return data;
+
+  throw lastError;
 }
 
 function getCurrentUser() {
@@ -48,30 +57,63 @@ async function loadProfile() {
     return;
   }
 
-  const [{ user }, { posts }] = await Promise.all([
-    apiRequest(`/api/users/${currentUser.id}`),
-    apiRequest(`/api/posts?authorId=${currentUser.id}&sortBy=createdAt&order=desc`),
-  ]);
+  const profileUserId =
+    Number(new URLSearchParams(window.location.search).get("userId")) || currentUser.id;
+  const isOwnProfile = profileUserId === currentUser.id;
 
-  setCurrentUser(user);
-  renderProfile(user);
-  renderUserPosts(posts);
+  const user = await getProfileUser(profileUserId, currentUser, isOwnProfile);
+  const { posts } = await apiRequest(
+    `/api/posts?authorId=${user.id}&sortBy=createdAt&order=desc`
+  );
+
+  if (isOwnProfile) setCurrentUser(user);
+  renderProfile(user, isOwnProfile);
+  renderUserPosts(posts, user, isOwnProfile);
 }
 
-function renderProfile(user) {
+async function getProfileUser(profileUserId, currentUser, isOwnProfile) {
+  try {
+    const { user } = await apiRequest(`/api/users/${profileUserId}`);
+    return user;
+  } catch (error) {
+    if (!isOwnProfile || !String(error.message).includes("not found")) {
+      throw error;
+    }
+
+    const search = encodeURIComponent(currentUser.email || currentUser.username || "");
+    const { users } = await apiRequest(`/api/users?search=${search}`);
+    const matchingUser = users.find(
+      (user) =>
+        user.email === currentUser.email ||
+        user.username.toLowerCase() === currentUser.username?.toLowerCase()
+    );
+
+    if (matchingUser) return matchingUser;
+
+    localStorage.removeItem("currentUser");
+    window.location.href = "login.html";
+    throw new Error("Your saved login was old. Please log in again.");
+  }
+}
+
+function renderProfile(user, isOwnProfile) {
   profileInfo.username.textContent = user.username;
   profileInfo.email.textContent = user.email;
-  profileInfo.bio.textContent = "No bio yet.";
+  profileInfo.bio.textContent = user.bio || "No bio yet.";
   profileInfo.image.src = user.avatarUrl || defaultAvatar();
   profileInfo.followers.textContent = user._count?.followers || 0;
   profileInfo.following.textContent = user._count?.following || 0;
+
+  if (editProfileBtn) {
+    editProfileBtn.classList.toggle("hidden", !isOwnProfile);
+  }
 }
 
 function openEditForm() {
   const currentUser = getCurrentUser();
 
   document.getElementById("editUsername").value = currentUser.username || "";
-  document.getElementById("editBio").value = "";
+  document.getElementById("editBio").value = currentUser.bio || "";
   document.getElementById("editProfilePicture").value = currentUser.avatarUrl || "";
   document.getElementById("editProfileSection").classList.remove("hidden");
 }
@@ -86,6 +128,7 @@ async function saveProfileChanges(e) {
 
   const currentUser = getCurrentUser();
   const username = document.getElementById("editUsername").value.trim();
+  const bio = document.getElementById("editBio").value.trim();
   const avatarUrl = document.getElementById("editProfilePicture").value.trim();
   const message = document.getElementById("profileMessage");
 
@@ -102,6 +145,7 @@ async function saveProfileChanges(e) {
       body: JSON.stringify({
         username,
         email: currentUser.email,
+        bio: bio || null,
         avatarUrl: avatarUrl || null,
       }),
     });
@@ -119,7 +163,11 @@ async function saveProfileChanges(e) {
   }
 }
 
-function renderUserPosts(posts) {
+function renderUserPosts(posts, user, isOwnProfile) {
+  if (profilePostsTitle) {
+    profilePostsTitle.textContent = isOwnProfile ? "My Posts" : `${user.username}'s Posts`;
+  }
+
   if (!posts.length) {
     userPostsContainer.innerHTML = "<p>No posts yet.</p>";
     return;

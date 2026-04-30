@@ -740,6 +740,7 @@ body {
 
 .like-btn,
 .follow-btn,
+.unfollow-btn,
 .delete-btn,
 .cancel-btn {
   border: none;
@@ -766,6 +767,15 @@ body {
 
 .follow-btn:hover {
   background: #bfdbfe;
+}
+
+.unfollow-btn {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.unfollow-btn:hover {
+  background: #fde68a;
 }
 
 .delete-btn {
