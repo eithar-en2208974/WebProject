@@ -1,25 +1,16 @@
 async function apiRequest(path, options = {}) {
-  const apiBases = ["", "http://localhost:3005", "http://localhost:3000"];
-  let lastError;
+  const response = await fetch(path, {
+    headers: { "Content-Type": "application/json", ...(options.headers || {}) },
+    ...options,
+  });
 
-  for (const baseUrl of apiBases) {
-    try {
-      const response = await fetch(`${baseUrl}${path}`, {
-        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-        ...options,
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error || `Request failed with status ${response.status}`);
-      }
-      return data;
-    } catch (error) {
-      lastError = error;
-      if (!String(error.message).includes("404") && baseUrl) break;
-    }
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.error || `Request failed with status ${response.status}`);
   }
 
-  throw lastError;
+  return data;
 }
 
 function redirectIfLoggedIn() {

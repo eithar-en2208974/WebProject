@@ -9,7 +9,8 @@ export default async function handler(req, res) {
 
   try {
     const { authorId, text } = req.body;
-    if (!authorId || !text) return res.status(400).json({ error: "authorId and text are required" });
+    if (!authorId || !text)
+      return res.status(400).json({ error: "authorId and text are required" });
     const comment = await addComment({ postId, authorId, text });
     return res.status(201).json({ comment });
   } catch (error) {

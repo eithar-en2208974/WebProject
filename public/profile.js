@@ -14,27 +14,23 @@ const userPostsContainer = document.getElementById("userPostsContainer");
 const profilePostsTitle = document.getElementById("profilePostsTitle");
 
 async function apiRequest(path, options = {}) {
-  const apiBases = ["", "http://localhost:3005", "http://localhost:3000"];
-  let lastError;
+  const response = await fetch(path, {
+    headers: {
+      "Content-Type": "application/json",
+      ...(options.headers || {}),
+    },
+    ...options,
+  });
 
-  for (const baseUrl of apiBases) {
-    try {
-      const response = await fetch(`${baseUrl}${path}`, {
-        headers: { "Content-Type": "application/json", ...(options.headers || {}) },
-        ...options,
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(data.error || `Request failed with status ${response.status}`);
-      }
-      return data;
-    } catch (error) {
-      lastError = error;
-      if (!String(error.message).includes("404") && baseUrl) break;
-    }
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      data.error || `Request failed with status ${response.status}`,
+    );
   }
 
-  throw lastError;
+  return data;
 }
 
 function getCurrentUser() {
@@ -58,15 +54,19 @@ async function loadProfile() {
   }
 
   const profileUserId =
-    Number(new URLSearchParams(window.location.search).get("userId")) || currentUser.id;
+    Number(new URLSearchParams(window.location.search).get("userId")) ||
+    currentUser.id;
+
   const isOwnProfile = profileUserId === currentUser.id;
 
   const user = await getProfileUser(profileUserId, currentUser, isOwnProfile);
+
   const { posts } = await apiRequest(
-    `/api/posts?authorId=${user.id}&sortBy=createdAt&order=desc`
+    `/api/posts?authorId=${user.id}&sortBy=createdAt&order=desc`,
   );
 
   if (isOwnProfile) setCurrentUser(user);
+
   renderProfile(user, isOwnProfile);
   renderUserPosts(posts, user, isOwnProfile);
 }
@@ -80,12 +80,15 @@ async function getProfileUser(profileUserId, currentUser, isOwnProfile) {
       throw error;
     }
 
-    const search = encodeURIComponent(currentUser.email || currentUser.username || "");
+    const search = encodeURIComponent(
+      currentUser.email || currentUser.username || "",
+    );
     const { users } = await apiRequest(`/api/users?search=${search}`);
+
     const matchingUser = users.find(
       (user) =>
         user.email === currentUser.email ||
-        user.username.toLowerCase() === currentUser.username?.toLowerCase()
+        user.username.toLowerCase() === currentUser.username?.toLowerCase(),
     );
 
     if (matchingUser) return matchingUser;
@@ -114,7 +117,8 @@ function openEditForm() {
 
   document.getElementById("editUsername").value = currentUser.username || "";
   document.getElementById("editBio").value = currentUser.bio || "";
-  document.getElementById("editProfilePicture").value = currentUser.avatarUrl || "";
+  document.getElementById("editProfilePicture").value =
+    currentUser.avatarUrl || "";
   document.getElementById("editProfileSection").classList.remove("hidden");
 }
 
@@ -129,7 +133,16 @@ async function saveProfileChanges(e) {
   const currentUser = getCurrentUser();
   const username = document.getElementById("editUsername").value.trim();
   const bio = document.getElementById("editBio").value.trim();
-  const avatarUrl = document.getElementById("editProfilePicture").value.trim();
+  const imageFile = document.getElementById("editProfilePicture").files[0];
+  let avatarUrl = currentUser.avatarUrl || null;
+
+  if (imageFile) {
+    avatarUrl = await new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.readAsDataURL(imageFile);
+    });
+  }
   const message = document.getElementById("profileMessage");
 
   message.style.color = "red";
@@ -153,6 +166,7 @@ async function saveProfileChanges(e) {
     setCurrentUser(user);
     message.style.color = "green";
     message.textContent = "Profile updated successfully.";
+
     await loadProfile();
 
     setTimeout(() => {
@@ -165,7 +179,9 @@ async function saveProfileChanges(e) {
 
 function renderUserPosts(posts, user, isOwnProfile) {
   if (profilePostsTitle) {
-    profilePostsTitle.textContent = isOwnProfile ? "My Posts" : `${user.username}'s Posts`;
+    profilePostsTitle.textContent = isOwnProfile
+      ? "My Posts"
+      : `${user.username}'s Posts`;
   }
 
   if (!posts.length) {
@@ -184,12 +200,85 @@ function renderUserPosts(posts, user, isOwnProfile) {
                 <div class="post-time">${new Date(post.createdAt).toLocaleString("en-GB")}</div>
               </div>
             </div>
+
+            ${
+              isOwnProfile
+                ? `
+                  <div class="post-actions">
+                    <button class="follow-btn edit-post-btn" data-id="${post.id}">Edit</button>
+                    <button class="delete-btn" data-id="${post.id}">Delete</button>
+                  </div>
+                `
+                : ""
+            }
           </div>
-          <p class="post-text">${post.text}</p>
+
+          <p class="post-text" id="post-text-${post.id}">${post.text}</p>
+
+          <div class="comment-input hidden" id="edit-box-${post.id}">
+            <input type="text" id="edit-input-${post.id}" value="${post.text}" />
+            <button class="follow-btn save-edit-btn" data-id="${post.id}">Save</button>
+            <button class="cancel-btn cancel-edit-btn" data-id="${post.id}">Cancel</button>
+          </div>
         </article>
       `,
     )
     .join("");
+
+  document
+    .querySelectorAll("#userPostsContainer .delete-btn")
+    .forEach((button) => {
+      button.addEventListener("click", async () => {
+        if (!confirm("Delete this post?")) return;
+
+        try {
+          await apiRequest(`/api/posts/${button.dataset.id}`, {
+            method: "DELETE",
+          });
+
+          await loadProfile();
+        } catch (error) {
+          alert(error.message);
+        }
+      });
+    });
+
+  document.querySelectorAll(".edit-post-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const postId = button.dataset.id;
+      document.getElementById(`edit-box-${postId}`).classList.remove("hidden");
+    });
+  });
+
+  document.querySelectorAll(".cancel-edit-btn").forEach((button) => {
+    button.addEventListener("click", () => {
+      const postId = button.dataset.id;
+      document.getElementById(`edit-box-${postId}`).classList.add("hidden");
+    });
+  });
+
+  document.querySelectorAll(".save-edit-btn").forEach((button) => {
+    button.addEventListener("click", async () => {
+      const postId = button.dataset.id;
+      const text = document.getElementById(`edit-input-${postId}`).value.trim();
+
+      if (!text) {
+        alert("Post cannot be empty.");
+        return;
+      }
+
+      try {
+        await apiRequest(`/api/posts/${postId}`, {
+          method: "PUT",
+          body: JSON.stringify({ text }),
+        });
+
+        await loadProfile();
+      } catch (error) {
+        alert(error.message);
+      }
+    });
+  });
 }
 
 if (editProfileBtn) {
