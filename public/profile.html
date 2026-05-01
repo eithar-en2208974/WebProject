@@ -29,9 +29,15 @@
             <p id="ProfileBio">No bio yet.</p>
 
             <div class="profile-stats">
-              <span><strong id="followersCount">0</strong> Followers</span>
-              <span><strong id="followingCount">0</strong> Following</span>
+              <span onclick="openFollowPopup('followers')" style="cursor:pointer;">
+                <strong id="followersCount">0</strong> Followers
+              </span>
+              <span onclick="openFollowPopup('following')" style="cursor:pointer; margin-left:20px;">
+                <strong id="followingCount">0</strong> Following
+              </span>
             </div>
+            <button id="followBtn" class="follow-btn hidden">Follow</button>
+            
 
             <button id="editProfileBtn" class="profile-btn">
               Edit Profile
@@ -77,9 +83,20 @@
           <p>No posts yet.</p>
         </div>
       </section>
+        </div>
+      </div>
     </main>
-
+    <div id="popup" class="popup hidden">
+      <div class="popup-box">
+        <h3 id="popupTitle"></h3>
+        <div id="popupList"></div>
+        <button type="button" onclick="window.closePopup()">Close</button>
+      </div>
+    </div>
+    
+    <script src="auth.js"></script>
     <script src="nav.js"></script>
     <script src="profile.js"></script>
   </body>
 </html>
+

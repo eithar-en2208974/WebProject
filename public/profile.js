@@ -274,3 +274,128 @@ if (editProfileForm) {
 loadProfile().catch((error) => {
   document.querySelector(".profile-page").innerHTML = `<p>${error.message}</p>`;
 });
+window.openFollowPopup = async function (type) {
+  const popup = document.getElementById("popup");
+  const popupTitle = document.getElementById("popupTitle");
+  const popupList = document.getElementById("popupList");
+
+  popupTitle.textContent = type === "followers" ? "Followers" : "Following";
+  popupList.innerHTML = "<p>Loading...</p>";
+  popup.classList.remove("hidden");
+
+  const params = new URLSearchParams(window.location.search);
+  const profileUserId = Number(params.get("userId")) || getCurrentUser().id;
+
+  try {
+    const { users } = await apiRequest("/api/users?sortBy=username&order=asc");
+
+    let finalUsers = [];
+
+    if (type === "following") {
+      const { followingIds } = await apiRequest(
+        `/api/follows?followerId=${profileUserId}`
+      );
+
+      finalUsers = users.filter((user) => followingIds.includes(user.id));
+    }
+
+    if (type === "followers") {
+      const checks = await Promise.all(
+        users.map(async (user) => {
+          const { followingIds } = await apiRequest(
+            `/api/follows?followerId=${user.id}`
+          );
+
+          return followingIds.includes(profileUserId) ? user : null;
+        })
+      );
+
+      finalUsers = checks.filter(Boolean);
+    }
+
+    if (finalUsers.length === 0) {
+      popupList.innerHTML = "<p>No users found.</p>";
+      return;
+    }
+
+    popupList.innerHTML = finalUsers
+    .map(
+    (user) => `
+      <div class="popup-user" onclick="goToUserProfile(${user.id})" style="cursor:pointer;">
+        <div class="popup-avatar">${user.username[0]}</div>
+        <span>${user.username}</span>
+      </div>
+    `
+  )
+  .join("");
+  } catch (error) {
+    popupList.innerHTML = "<p>Error loading users.</p>";
+    console.error(error);
+  }
+};
+
+
+
+async function followUser(followingId) {
+  const currentUser = getCurrentUser();
+
+  await apiRequest("/api/follows", {
+    method: "POST",
+    body: JSON.stringify({ followerId: currentUser.id, followingId }),
+  });
+
+  await loadProfile();
+  await setupProfileFollowButton();
+}
+
+async function unfollowUser(followingId) {
+  const currentUser = getCurrentUser();
+
+  await apiRequest("/api/follows", {
+    method: "DELETE",
+    body: JSON.stringify({ followerId: currentUser.id, followingId }),
+  });
+
+  await loadProfile();
+  await setupProfileFollowButton();
+}
+
+async function setupProfileFollowButton() {
+  const followBtn = document.getElementById("followBtn");
+  const currentUser = getCurrentUser();
+
+  const params = new URLSearchParams(window.location.search);
+  const profileUserId = Number(params.get("userId"));
+
+  if (!followBtn || !currentUser || !profileUserId || currentUser.id === profileUserId) {
+    followBtn?.classList.add("hidden");
+    return;
+  }
+
+  const { followingIds } = await apiRequest(`/api/follows?followerId=${currentUser.id}`);
+  const isFollowing = followingIds.includes(profileUserId);
+
+  followBtn.classList.remove("hidden");
+  followBtn.textContent = isFollowing ? "Unfollow" : "Follow";
+  followBtn.className = isFollowing ? "unfollow-btn" : "follow-btn";
+  followBtn.id = "followBtn";
+
+  followBtn.onclick = async () => {
+    if (isFollowing) {
+      await unfollowUser(profileUserId);
+    } else {
+      await followUser(profileUserId);
+    }
+  };
+}
+
+window.closePopup = function () {
+  document.getElementById("popup").classList.add("hidden");
+};
+window.goToUserProfile = function (userId) {
+
+  window.location.href = `profile.html?userId=${userId}`;
+
+};
+
+setupProfileFollowButton();
