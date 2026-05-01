@@ -163,7 +163,9 @@ function renderPosts(posts, followingIds = []) {
 
         ${
           currentUser && currentUser.id !== post.authorId
-            ? `<button class="${followingIds.includes(post.authorId) ? "unfollow-btn" : "follow-btn"}" data-user-id="${post.authorId}">
+            ? `
+            <button class="repost-btn" onclick="repostPost(${post.id})">Repost</button>
+            <button class="${followingIds.includes(post.authorId) ? "unfollow-btn" : "follow-btn"}" data-user-id="${post.authorId}">
                 ${followingIds.includes(post.authorId) ? "Unfollow" : "Follow"}
               </button>`
             : ""
@@ -301,6 +303,11 @@ function renderPosts(posts, followingIds = []) {
       unfollowUser(Number(button.dataset.userId)),
     );
   });
+  document.querySelectorAll(".repost-btn").forEach((button) => {
+    button.addEventListener("click", () =>
+      repostPost(Number(button.dataset.id))
+    );
+  });
 }
 
 async function createPost() {
@@ -412,3 +419,44 @@ postBtn.addEventListener("click", createPost);
 loadPosts().catch((error) => {
   postsContainer.innerHTML = `<p>${error.message}</p>`;
 });
+
+window.repostPost = async function (postId) {
+  const currentUser = getCurrentUser();
+
+  const postCard = document
+    .querySelector(`button[onclick="repostPost(${postId})"]`)
+    .closest(".post-card");
+
+  const originalUser = postCard.querySelector(".post-user").textContent;
+  const originalText = postCard.querySelector(".post-text").textContent;
+
+  const repostText = `Reposted from ${originalUser}: ${originalText}`;
+
+  try {
+    const { posts } = await apiRequest(
+      `/api/posts?feedUserId=${currentUser.id}&sortBy=createdAt&order=desc`
+    );
+
+    const alreadyReposted = posts.some(
+      (post) => post.authorId === currentUser.id && post.text === repostText
+    );
+
+    if (alreadyReposted) {
+      alert("You already reposted this post.");
+      return;
+    }
+
+    await apiRequest("/api/posts", {
+      method: "POST",
+      body: JSON.stringify({
+        authorId: currentUser.id,
+        text: repostText,
+      }),
+    });
+
+    alert("Post reposted!");
+    await loadPosts();
+  } catch (error) {
+    alert(error.message);
+  }
+};
