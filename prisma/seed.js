@@ -18,7 +18,7 @@ async function main() {
       password: "123456",
       bio: "Computer science student building Cirqle for a web project.",
       avatarUrl:
-        "https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&w=256&q=80",
+        "https://images.unsplash.com/photo-1566563379703-834dce523cdb?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       username: "Maha",
@@ -26,7 +26,7 @@ async function main() {
       password: "123456",
       bio: "Testing the feed, comments, and profile features.",
       avatarUrl:
-        "https://images.unsplash.com/photo-1508214751196-bcfd4ca60f91?auto=format&fit=crop&w=256&q=80",
+        "https://images.unsplash.com/photo-1669225097669-873cfba1dc10?q=80&w=536&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       username: "Omar",
@@ -34,7 +34,7 @@ async function main() {
       password: "123456",
       bio: "Interested in database queries and app statistics.",
       avatarUrl:
-        "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=256&q=80",
+        "https://images.unsplash.com/photo-1763858543305-bfa848121af0?q=80&w=991&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       username: "Layla",
@@ -42,7 +42,7 @@ async function main() {
       password: "123456",
       bio: "Following classmates and sharing project updates.",
       avatarUrl:
-        "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=256&q=80",
+        "https://plus.unsplash.com/premium_photo-1676070096509-c566967e6fc1?q=80&w=688&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       username: "Yousef",
@@ -50,7 +50,7 @@ async function main() {
       password: "123456",
       bio: "Preparing a smooth demo walkthrough.",
       avatarUrl:
-        "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&w=256&q=80",
+        "https://images.unsplash.com/photo-1712067011255-75eb60f095d9?q=80&w=1287&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       username: "Aisha",
@@ -58,7 +58,7 @@ async function main() {
       password: "123456",
       bio: "Sharing study notes and testing profile visibility.",
       avatarUrl:
-        "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&w=256&q=80",
+        "https://images.unsplash.com/photo-1608963345943-366524727747?q=80&w=687&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       username: "Sara",
@@ -66,7 +66,7 @@ async function main() {
       password: "123456",
       bio: "Trying likes, comments, and social interactions.",
       avatarUrl:
-        "https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=256&q=80",
+        "https://images.unsplash.com/photo-1689601274584-e31212f9e428?q=80&w=1173&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       username: "Malak",
@@ -74,15 +74,14 @@ async function main() {
       password: "123456",
       bio: "New Cirqle member testing profile edits and posts.",
       avatarUrl:
-        "https://images.unsplash.com/photo-1524504388940-b1c1722653e1?auto=format&fit=crop&w=256&q=80",
+        "https://images.unsplash.com/photo-1731177630483-195c42105402?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
     {
       username: "Khalid",
       email: "khalid@example.com",
       password: "123456",
       bio: "Checking how follows change the news feed.",
-      avatarUrl:
-        "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&w=256&q=80",
+      avatarUrl: "https://images.unsplash.com/photo-1560243367-b5608ac0d63e?q=80&w=735&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
     },
   ];
 
