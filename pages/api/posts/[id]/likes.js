@@ -1,23 +1,48 @@
-import { handleApiError, methodNotAllowed, parseId } from "../../../../lib/api";
-import { likePost, unlikePost } from "../../../../lib/repositories/interactionsRepository";
+import { prisma } from "../../../../lib/prisma";
 
 export default async function handler(req, res) {
-  const postId = parseId(req.query.id);
-  if (!postId) return res.status(400).json({ error: "Invalid post id" });
+  const postId = Number(req.query.id);
+  const { userId } = req.body;
+
+  if (!postId || !userId) {
+    return res.status(400).json({ error: "postId and userId required" });
+  }
 
   try {
-    if (req.method === "POST") {
-      const like = await likePost({ postId, userId: req.body.userId });
-      return res.status(201).json({ like });
-    }
+    // Check if like exists
+    const existing = await prisma.like.findUnique({
+      where: {
+        postId_userId: {
+          postId,
+          userId,
+        },
+      },
+    });
 
-    if (req.method === "DELETE") {
-      const like = await unlikePost({ postId, userId: req.body.userId });
-      return res.status(200).json({ like });
-    }
+    if (existing) {
+      // UNLIKE
+      await prisma.like.delete({
+        where: {
+          postId_userId: {
+            postId,
+            userId,
+          },
+        },
+      });
 
-    return methodNotAllowed(res, ["POST", "DELETE"]);
+      return res.status(200).json({ message: "Unliked" });
+    } else {
+      // LIKE
+      await prisma.like.create({
+        data: {
+          postId,
+          userId,
+        },
+      });
+
+      return res.status(201).json({ message: "Liked" });
+    }
   } catch (error) {
-    return handleApiError(res, error);
+    return res.status(500).json({ error: error.message });
   }
 }
