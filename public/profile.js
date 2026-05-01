@@ -59,7 +59,7 @@ async function loadProfile() {
 
   const isOwnProfile = profileUserId === currentUser.id;
 
-  const user = await getProfileUser(profileUserId, currentUser, isOwnProfile);
+  const { user } = await apiRequest(`/api/users/${profileUserId}`);
 
   const { posts } = await apiRequest(
     `/api/posts?authorId=${user.id}&sortBy=createdAt&order=desc`,
@@ -69,34 +69,6 @@ async function loadProfile() {
 
   renderProfile(user, isOwnProfile);
   renderUserPosts(posts, user, isOwnProfile);
-}
-
-async function getProfileUser(profileUserId, currentUser, isOwnProfile) {
-  try {
-    const { user } = await apiRequest(`/api/users/${profileUserId}`);
-    return user;
-  } catch (error) {
-    if (!isOwnProfile || !String(error.message).includes("not found")) {
-      throw error;
-    }
-
-    const search = encodeURIComponent(
-      currentUser.email || currentUser.username || "",
-    );
-    const { users } = await apiRequest(`/api/users?search=${search}`);
-
-    const matchingUser = users.find(
-      (user) =>
-        user.email === currentUser.email ||
-        user.username.toLowerCase() === currentUser.username?.toLowerCase(),
-    );
-
-    if (matchingUser) return matchingUser;
-
-    localStorage.removeItem("currentUser");
-    window.location.href = "login.html";
-    throw new Error("Your saved login was old. Please log in again.");
-  }
 }
 
 function renderProfile(user, isOwnProfile) {
@@ -117,8 +89,9 @@ function openEditForm() {
 
   document.getElementById("editUsername").value = currentUser.username || "";
   document.getElementById("editBio").value = currentUser.bio || "";
-  document.getElementById("editProfilePicture").value =
-    currentUser.avatarUrl || "";
+
+  document.getElementById("editProfilePicture").value = "";
+
   document.getElementById("editProfileSection").classList.remove("hidden");
 }
 
@@ -134,6 +107,7 @@ async function saveProfileChanges(e) {
   const username = document.getElementById("editUsername").value.trim();
   const bio = document.getElementById("editBio").value.trim();
   const imageFile = document.getElementById("editProfilePicture").files[0];
+
   let avatarUrl = currentUser.avatarUrl || null;
 
   if (imageFile) {
@@ -143,8 +117,8 @@ async function saveProfileChanges(e) {
       reader.readAsDataURL(imageFile);
     });
   }
-  const message = document.getElementById("profileMessage");
 
+  const message = document.getElementById("profileMessage");
   message.style.color = "red";
 
   if (!username) {
@@ -164,6 +138,7 @@ async function saveProfileChanges(e) {
     });
 
     setCurrentUser(user);
+
     message.style.color = "green";
     message.textContent = "Profile updated successfully.";
 
@@ -213,7 +188,7 @@ function renderUserPosts(posts, user, isOwnProfile) {
             }
           </div>
 
-          <p class="post-text" id="post-text-${post.id}">${post.text}</p>
+          <p class="post-text">${post.text}</p>
 
           <div class="comment-input hidden" id="edit-box-${post.id}">
             <input type="text" id="edit-input-${post.id}" value="${post.text}" />
@@ -225,6 +200,7 @@ function renderUserPosts(posts, user, isOwnProfile) {
     )
     .join("");
 
+  // DELETE
   document
     .querySelectorAll("#userPostsContainer .delete-btn")
     .forEach((button) => {
@@ -243,6 +219,7 @@ function renderUserPosts(posts, user, isOwnProfile) {
       });
     });
 
+  // EDIT
   document.querySelectorAll(".edit-post-btn").forEach((button) => {
     button.addEventListener("click", () => {
       const postId = button.dataset.id;
@@ -281,6 +258,7 @@ function renderUserPosts(posts, user, isOwnProfile) {
   });
 }
 
+// EVENTS
 if (editProfileBtn) {
   editProfileBtn.addEventListener("click", openEditForm);
 }
