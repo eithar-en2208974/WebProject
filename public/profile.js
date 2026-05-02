@@ -293,7 +293,7 @@ window.openFollowPopup = async function (type) {
 
     if (type === "following") {
       const { followingIds } = await apiRequest(
-        `/api/follows?followerId=${profileUserId}`
+        `/api/follows?followerId=${profileUserId}`,
       );
 
       finalUsers = users.filter((user) => followingIds.includes(user.id));
@@ -303,11 +303,11 @@ window.openFollowPopup = async function (type) {
       const checks = await Promise.all(
         users.map(async (user) => {
           const { followingIds } = await apiRequest(
-            `/api/follows?followerId=${user.id}`
+            `/api/follows?followerId=${user.id}`,
           );
 
           return followingIds.includes(profileUserId) ? user : null;
-        })
+        }),
       );
 
       finalUsers = checks.filter(Boolean);
@@ -319,22 +319,20 @@ window.openFollowPopup = async function (type) {
     }
 
     popupList.innerHTML = finalUsers
-    .map(
-    (user) => `
+      .map(
+        (user) => `
       <div class="popup-user" onclick="goToUserProfile(${user.id})" style="cursor:pointer;">
         <div class="popup-avatar">${user.username[0]}</div>
         <span>${user.username}</span>
       </div>
-    `
-  )
-  .join("");
+    `,
+      )
+      .join("");
   } catch (error) {
     popupList.innerHTML = "<p>Error loading users.</p>";
     console.error(error);
   }
 };
-
-
 
 async function followUser(followingId) {
   const currentUser = getCurrentUser();
@@ -367,12 +365,19 @@ async function setupProfileFollowButton() {
   const params = new URLSearchParams(window.location.search);
   const profileUserId = Number(params.get("userId"));
 
-  if (!followBtn || !currentUser || !profileUserId || currentUser.id === profileUserId) {
+  if (
+    !followBtn ||
+    !currentUser ||
+    !profileUserId ||
+    currentUser.id === profileUserId
+  ) {
     followBtn?.classList.add("hidden");
     return;
   }
 
-  const { followingIds } = await apiRequest(`/api/follows?followerId=${currentUser.id}`);
+  const { followingIds } = await apiRequest(
+    `/api/follows?followerId=${currentUser.id}`,
+  );
   const isFollowing = followingIds.includes(profileUserId);
 
   followBtn.classList.remove("hidden");
@@ -393,9 +398,7 @@ window.closePopup = function () {
   document.getElementById("popup").classList.add("hidden");
 };
 window.goToUserProfile = function (userId) {
-
   window.location.href = `profile.html?userId=${userId}`;
-
 };
 
 setupProfileFollowButton();

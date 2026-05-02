@@ -22,7 +22,6 @@ model User {
   inboxMessages Message[]      @relation("ReceivedMessages")
   following     Follow[]       @relation("Following")
   followers     Follow[]       @relation("Followers")
-  notifications Notification[]
 }
 
 model Post {
@@ -90,14 +89,4 @@ model Message {
   @@index([createdAt])
 }
 
-model Notification {
-  id        Int      @id @default(autoincrement())
-  text      String
-  isRead    Boolean  @default(false)
-  createdAt DateTime @default(now())
-  userId    Int
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@index([userId])
-  @@index([isRead])
-}
